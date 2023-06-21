@@ -55,6 +55,7 @@
 #OPT_BOARD := stm32l4r9zi_sensortile
 #OPT_BOARD := stm32f767zi_nucleo
 #OPT_BOARD := stm32f769ni_discovery
+#OPT_BOARD := gd32vf103cbt6_longan_nano
 
 ##
 ## Optimization flags, choose one.
@@ -650,6 +651,12 @@ ifeq ($(OPT_BOARD),stm32l4r9zi_sensortile)
 
 endif
 
+##---------------------------------------------------------------------------
+## gd32vf103cbt6_longan_nano
+##
+
+# No options
+
 ############################################################################
 ## From the options selected above, now fill all the variables needed to  ##
 ## build Miosix. You should modify something here only if you are adding  ##
@@ -753,6 +760,8 @@ else ifeq ($(OPT_BOARD),stm32f767zi_nucleo)
     ARCH := cortexM7_stm32f7
 else ifeq ($(OPT_BOARD),stm32f769ni_discovery)
     ARCH := cortexM7_stm32f7
+else ifeq ($(OPT_BOARD),gd32vf103cbt6_longan_nano)
+    ARCH := riscv_gd32vf103
 else
     $(info Error: no board specified in miosix/config/Makefile.inc)
     $(error Error)
@@ -2843,6 +2852,80 @@ else ifeq ($(ARCH),cortexM4_atsam4l)
     $(ARCH_INC)/interfaces-impl/gpio_impl.cpp                \
     $(ARCH_INC)/interfaces-impl/delays.cpp
     
+##-----------------------------------------------------------------------------
+## ARCHITECTURE: riscv_gd32vf103
+##
+else ifeq ($(ARCH),riscv_gd32vf103)
+    ## Base directory with header files for this board
+    ARCH_INC := arch/riscv_gd32vf103/common
+
+    ##-------------------------------------------------------------------------
+    ## BOARD: gd32vf103cbt6_longan_nano
+    ##
+    ifeq ($(OPT_BOARD),gd32vf103cbt6_longan_nano)
+
+        ## Base directory with header files for this board
+        BOARD_INC := arch/riscv_gd32vf103/gd32vf103cbt6_longan_nano
+
+        ## Select linker script and boot file
+        ## Their path must be relative to the miosix directory.
+        BOOT_FILE := $(BOARD_INC)/core/stage_1_boot.o
+        LINKER_SCRIPT := $(BOARD_INC)/miosix.ld
+
+        ## Select architecture specific files
+        ## These are the files in arch/<arch name>/<board name>
+        ARCH_SRC :=                                  \
+        $(BOARD_INC)/interfaces-impl/portability.cpp \
+        $(BOARD_INC)/interfaces-impl/os_timer.cpp    \
+        $(BOARD_INC)/interfaces-impl/delays.cpp      \
+        $(BOARD_INC)/interfaces-impl/bsp.cpp
+
+		# TODO: add driver path
+
+        ## Add a #define to allow querying board name
+        CFLAGS_BASE   += -D_BOARD_GD32VF103CBT6_LONGAN_NANO
+        CXXFLAGS_BASE += -D_BOARD_GD32VF103CBT6_LONGAN_NANO
+        
+    ##-------------------------------------------------------------------------
+    ## End of board list
+    ##
+    endif
+
+    ## Select compiler
+    PREFIX=riscv32-miosix-elf-
+
+    ## From compiler prefix form the name of the compiler and other tools
+    CC  := $(PREFIX)gcc
+    CXX := $(PREFIX)g++
+    LD  := $(PREFIX)ld
+    AR  := $(PREFIX)ar
+    AS  := $(PREFIX)as
+    CP  := $(PREFIX)objcopy
+    OD  := $(PREFIX)objdump
+    SZ  := $(PREFIX)size
+
+    ## Select appropriate compiler flags for both ASM/C/C++/linker
+    AFLAGS_BASE   := -march=rv32imac
+    CFLAGS_BASE   += -D_ARCH_RISCV_GD32VF103 -march=rv32imac $(OPT_OPTIMIZATION) -c
+    CXXFLAGS_BASE += -D_ARCH_RISCV_GD32VF103 -march=rv32imac $(OPT_OPTIMIZATION) \
+                     $(OPT_EXCEPT) -c
+    LFLAGS_BASE   := -Wl,--gc-sections,-Map,main.map          					 \
+                     -Wl,-T$(KPATH)/$(LINKER_SCRIPT) $(OPT_EXCEPT)  			 \
+                      $(OPT_OPTIMIZATION) -nostdlib
+
+    ## Select architecture specific files
+    ## These are the files in arch/<arch name>/common
+	## TODO: add driver files
+	## ARCH_SRC +=                                  \
+    ## arch/common/core/interrupts_arm7.cpp         \
+    ## arch/common/drivers/serial_lpc2000.cpp
+
+    ## Select programmer command line
+    ## This is the program that is invoked when the user types 'make program'
+    ## The command must provide a way to program the board, or print an error
+    ## message saying that 'make program' is not supported for that board.
+	## TODO: add programming tool
+    PROGRAM_CMDLINE := echo 'make program not supported'
 
 ##-----------------------------------------------------------------------------
 ## end of architecture list

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Uninstall script: removes the arm-miosix-eabi-gcc compiler
 
@@ -37,5 +37,4 @@ if [ -h "/usr/local/bin/mx-postlinker" ]; then
 fi
 
 # Remove the compiler
-cd /opt
-sudo rm -rf arm-miosix-eabi/
+sudo rm -rf /opt/arm-miosix-eabi

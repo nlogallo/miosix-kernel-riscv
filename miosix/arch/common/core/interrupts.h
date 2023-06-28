@@ -10,6 +10,8 @@
    || defined(_ARCH_CORTEXM4_STM32F3) || defined(_ARCH_CORTEXM4_STM32L4) \
    || defined(_ARCH_CORTEXM4_ATSAM4L)
 #include "interrupts_cortexMx.h"
+#elif defined(_ARCH_RISCV_GD32VF103)
+#include "interrupts_riscv.h"
 #else
 #error "Unknown arch"
 #endif

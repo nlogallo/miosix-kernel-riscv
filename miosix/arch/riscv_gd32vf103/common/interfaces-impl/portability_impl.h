@@ -35,7 +35,6 @@
 #include "config/miosix_settings.h"
 #include "core/interrupts.h"
 
-#include "custom_ops.h"
 /**
  * \addtogroup Drivers
  * \{
@@ -61,109 +60,7 @@
 extern "C" {
 extern volatile unsigned int *ctxsave;
 }
-
-/**
- * \internal
- * \def saveContext()
- * Save context from an interrupt<br>
- * Must be the first line of an IRQ where a context switch can happen.
- */
-
-#define saveContext()                                                          \
-{                                                                              \
-    picorv32_setq_insn(q2, t0); /* save t0 to q2 */                            \
-    asm volatile(                                                              \
-            "la t0,    ctxsave                     \n"                         \
-            "lw t0,      0(t0)                     \n"                         \
-            "sw ra,  0*4+0(t0)                     \n"                         \
-            "sw sp,  1*4+0(t0)                     \n"                         \
-            "sw tp,  2*4+0(t0)                     \n"                         \
-             /*not t0  for now*/                                               \
-            "sw t1,  4*4+0(t0)                     \n"                         \
-            "sw t2,  5*4+0(t0)                     \n"                         \
-            "sw s0,  6*4+0(t0)                     \n"                         \
-            "sw s1,  7*4+0(t0)                     \n"                         \
-            "sw a0,  8*4+0(t0)                     \n"                         \
-            "sw a1,  9*4+0(t0)                     \n"                         \
-            "sw a2, 10*4+0(t0)                     \n"                         \
-            "sw a3, 11*4+0(t0)                     \n"                         \
-            "sw a4, 12*4+0(t0)                     \n"                         \
-            "sw a5, 13*4+0(t0)                     \n"                         \
-            "sw a6, 14*4+0(t0)                     \n"                         \
-            "sw a7, 15*4+0(t0)                     \n"                         \
-            "sw s2, 16*4+0(t0)                     \n"                         \
-            "sw s3, 17*4+0(t0)                     \n"                         \
-            "sw s4, 18*4+0(t0)                     \n"                         \
-            "sw s5, 19*4+0(t0)                     \n"                         \
-            "sw s6, 20*4+0(t0)                     \n"                         \
-            "sw s7, 21*4+0(t0)                     \n"                         \
-            "sw s8, 22*4+0(t0)                     \n"                         \
-            "sw s9, 23*4+0(t0)                     \n"                         \
-            "sw s10,24*4+0(t0)                     \n"                         \
-            "sw s11,25*4+0(t0)                     \n"                         \
-            "sw t3, 26*4+0(t0)                     \n"                         \
-            "sw t4, 27*4+0(t0)                     \n"                         \
-            "sw t5, 28*4+0(t0)                     \n"                         \
-            "sw t6, 29*4+0(t0)                     \n"                         \
-    );                                                                         \
-    /* Save q0 */                                                              \
-    picorv32_getq_insn(t1, q0);                                                \
-    asm volatile("sw t1, 30*4+0(t0)":::"t1");                                  \
-    /* Save original t0 value */                                               \
-    picorv32_getq_insn(t1,q2);                                                 \
-    asm volatile("sw t1, 3*4+0(t0)":::"t1");                                   \
-    /* Restore t0 and t1 */                                                    \
-    picorv32_getq_insn(t0,q2);                                                 \
-    asm volatile("la sp, _main_stack_top");                                    \
-}
-
-/**
- * \def restoreContext()
- * Restore context in an IRQ where saveContext() is used. Must be the last line
- * of an IRQ where a context switch can happen. The IRQ must be "naked" to
- * prevent the compiler from generating context restore.
- */
-#define restoreContext()                                                       \
-{                                                                              \
-    asm volatile(                                                              \
-            "la t0, ctxsave                       \n"                          \
-            "lw t0, 0(t0)                         \n"                          \
-            "lw ra,  0*4+0(t0)                    \n"                          \
-            "lw sp,  1*4+0(t0)                    \n"                          \
-            "lw tp,  2*4+0(t0)                    \n"                          \
-            /* not t0 for now */                                               \
-            /* not t1 for now */                                               \
-            "lw t2,  5*4+0(t0)                    \n"                          \
-            "lw s0,  6*4+0(t0)                    \n"                          \
-            "lw s1,  7*4+0(t0)                    \n"                          \
-            "lw a0,  8*4+0(t0)                    \n"                          \
-            "lw a1,  9*4+0(t0)                    \n"                          \
-            "lw a2, 10*4+0(t0)                    \n"                          \
-            "lw a3, 11*4+0(t0)                    \n"                          \
-            "lw a4, 12*4+0(t0)                    \n"                          \
-            "lw a5, 13*4+0(t0)                    \n"                          \
-            "lw a6, 14*4+0(t0)                    \n"                          \
-            "lw a7, 15*4+0(t0)                    \n"                          \
-            "lw s2, 16*4+0(t0)                    \n"                          \
-            "lw s3, 17*4+0(t0)                    \n"                          \
-            "lw s4, 18*4+0(t0)                    \n"                          \
-            "lw s5, 19*4+0(t0)                    \n"                          \
-            "lw s6, 20*4+0(t0)                    \n"                          \
-            "lw s7, 21*4+0(t0)                    \n"                          \
-            "lw s8, 22*4+0(t0)                    \n"                          \
-            "lw s9, 23*4+0(t0)                    \n"                          \
-            "lw s10, 24*4+0(t0)                   \n"                          \
-            "lw s11, 25*4+0(t0)                   \n"                          \
-            "lw t3, 26*4+0(t0)                    \n"                          \
-            "lw t4, 27*4+0(t0)                    \n"                          \
-            "lw t5, 28*4+0(t0)                    \n"                          \
-            "lw t6, 29*4+0(t0)                    \n"                       ); \
-                                                                               \
-    asm volatile ("lw t1, 30*4+0(t0)");  /* load saved q0 in t1   */           \
-    picorv32_setq_insn(q0,t1);                                                 \
-    asm volatile("lw t1, 4*4+0(t0)\n"    /*now we can restore t0 and t1 */     \
-                 "lw t0, 3*4+0(t0)\n");                                        \
-}
+const int stackPtrOffsetInCtxsave=0; ///< Allows to locate the stack pointer
 
 /**
  * \}
@@ -196,21 +93,8 @@ inline void doEnableInterrupts()
 
 inline bool checkAreInterruptsEnabled()
 {
-    // PicoRV32 doesn't offer a way to check the value of the IRQ_Mask register without writing to it
-    // First we disable all interrupts, and save old value of IRQ_Mask in t6
-    register int i;
-
-    picorv32_setq_insn(q3,t6);
-    asm volatile("li t6, 0xffffffff");
-    picorv32_maskirq_insn(t6,t6);
-
-    asm volatile("add %0,t6, zero":"=r"(i));
-
-    //Then we set IRQ_Mask as it was before, to avoid issues
-    picorv32_maskirq_insn(zero, t6);
-
-    picorv32_getq_insn(t6,q3);
-    return (i == 0);
+	// TODO: find how to check if interrupts are enabled
+	return false;
 }
 
 #ifdef WITH_PROCESSES

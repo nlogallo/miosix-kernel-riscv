@@ -59,7 +59,8 @@ tuple<void (*)(void*), void*> unmemberLogic(unsigned long mixedField,
         result=reinterpret_cast<void (*)(void*)>(mixedField);
     }
 
-    #elif defined(__i386) || defined(__x86_64__)
+	// TODO: Check if this works for RISCV
+    #elif defined(__i386) || defined(__x86_64__) || defined(__riscv)
     //With multiple or virtual inheritance we need to add an offset to this.
     o+=thisOffset/sizeof(long);
 

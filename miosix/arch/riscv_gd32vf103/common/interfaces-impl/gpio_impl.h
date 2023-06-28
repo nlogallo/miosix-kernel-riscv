@@ -138,13 +138,18 @@ public:
 
     /**
      * Set the pin to 1, if it is an output
+	 * methods imported from gd32vf103_gpio.h
      */
-    void high() {}
+    void high() {
+		gpio_bit_set(p, n);
+	}
 
     /**
      * Set the pin to 0, if it is an output
      */
-    void low() {}
+    void low() {
+		gpio_bit_reset(p, n);
+	}
 
     /**
      * Allows to read the pin status
@@ -152,7 +157,7 @@ public:
      */
     int value()
     {
-        return 0;
+        return gpio_input_bit_get(p, n)
     }
 
 private:
@@ -203,12 +208,16 @@ public:
     /**
      * Set the pin to 1, if it is an output
      */
-    static void high() {}
+    static void high() {
+		gpio_bit_set(reinterpret_cast<GPIO_TypeDef*>(P), n);
+	}
 
     /**
      * Set the pin to 0, if it is an output
      */
-    static void low() {}
+    static void low() {
+		gpio_bit_reset(reinterpret_cast<GPIO_TypeDef*>(P), n);
+	}
 
     /**
      * Allows to read the pin status
@@ -216,7 +225,7 @@ public:
      */
     static int value()
     {
-        return 0;
+        return gpio_input_bit_get(reinterpret_cast<GPIO_TypeDef*>(P), n)
     }
 
     /**

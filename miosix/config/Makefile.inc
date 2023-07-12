@@ -2870,14 +2870,11 @@ else ifeq ($(ARCH),riscv_gd32vf103)
         ## Select linker script and boot file
         ## Their path must be relative to the miosix directory.
         BOOT_FILE := $(BOARD_INC)/core/stage_1_boot.o
-        LINKER_SCRIPT := $(BOARD_INC)/miosix.ld
+        LINKER_SCRIPT := $(BOARD_INC)/gd32_128k+32k_rom.ld
 
         ## Select architecture specific files
         ## These are the files in arch/<arch name>/<board name>
         ARCH_SRC :=                                  \
-        $(BOARD_INC)/interfaces-impl/portability.cpp \
-        $(BOARD_INC)/interfaces-impl/os_timer.cpp    \
-        $(BOARD_INC)/interfaces-impl/delays.cpp      \
         $(BOARD_INC)/interfaces-impl/bsp.cpp
 
 		# TODO: add driver path
@@ -2892,7 +2889,7 @@ else ifeq ($(ARCH),riscv_gd32vf103)
     endif
 
     ## Select compiler
-    PREFIX=riscv32-miosix-elf-
+    PREFIX := riscv32-miosix-elf-
 
     ## From compiler prefix form the name of the compiler and other tools
     CC  := $(PREFIX)gcc
@@ -2916,9 +2913,12 @@ else ifeq ($(ARCH),riscv_gd32vf103)
     ## Select architecture specific files
     ## These are the files in arch/<arch name>/common
 	## TODO: add driver files
-	## ARCH_SRC +=                                  \
-    ## arch/common/core/interrupts_arm7.cpp         \
-    ## arch/common/drivers/serial_lpc2000.cpp
+	ARCH_SRC :=                                  \
+	$(ARCH_INC)/interfaces-impl/portability.cpp \
+	$(ARCH_INC)/interfaces-impl/os_timer.cpp    \
+	$(ARCH_INC)/interfaces-impl/gpio_impl.cpp    \
+	$(ARCH_INC)/interfaces-impl/delays.cpp \
+	arch/common/drivers/serial_gd32.cpp
 
     ## Select programmer command line
     ## This is the program that is invoked when the user types 'make program'

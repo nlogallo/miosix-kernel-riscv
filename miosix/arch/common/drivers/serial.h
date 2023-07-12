@@ -13,6 +13,8 @@
 #include "serial_efm32.h"
 #elif defined(_ARCH_CORTEXM4_ATSAM4L)
 #include "serial_atsam4l.h"
+#elif defined(_ARCH_RISCV_GD32VF103)
+#include "serial_gd32.h"
 #else
 #error "Unknown arch"
 #endif

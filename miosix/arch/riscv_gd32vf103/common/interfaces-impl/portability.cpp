@@ -32,7 +32,6 @@
 #include "kernel/error.h"
 #include "interfaces/bsp.h"
 #include "kernel/scheduler/scheduler.h"
-#include "kernel/scheduler/tick_interrupt.h"
 #include "core/interrupts.h"
 #include "kernel/process.h"
 #include <algorithm>
@@ -45,94 +44,12 @@
 
 namespace miosix_private {
 
-
-/*This hack is needed because, while inside an irq, all interrupts are permanently disabled until
- * a retirq occurs.
- *
- * */
-void IRQErrorHandler(miosix::Error e) __attribute__((naked));
-void IRQErrorHandler(miosix::Error e){
-    asm volatile("la t6, _ZN6miosix12errorHandlerENS_5ErrorE":::"t6");
-    picorv32_setq_insn(q0,t6);
-    __disable_irq();
-    picorv32_retirq_insn();
-}
-
-void IRQstackOverflowCheck() __attribute__((noinline));
-void IRQstackOverflowCheck()
-{
-
-    const unsigned int watermarkSize=miosix::WATERMARK_LEN/sizeof(unsigned int);
-    for(unsigned int i=0;i<watermarkSize;i++)
-    {
-        if(miosix::cur->watermark[i]!=miosix::WATERMARK_FILL){
-            IRQErrorHandler(miosix::STACK_OVERFLOW);
-        }
-    }
-
-    if(miosix::cur->ctxsave[1] < reinterpret_cast<unsigned int>(
-            miosix::cur->watermark+watermarkSize)) {
-        IRQErrorHandler(miosix::STACK_OVERFLOW);
-    }
-}
-
 void IRQsystemReboot()
 {
     IRQerrorLog("rebooting\n");
     doDisableInterrupts();
 
     asm volatile("j _Z13Reset_Handlerv\n");
-}
-
-void IRQHandler() __attribute__((noinline));
-void IRQHandler() {
-
-    register int IRQ_vect;
-
-    picorv32_getq_insn(t5, q1);
-
-    asm volatile("add %0, t5, zero":"=r"(IRQ_vect)::"t5");
-
-    if(IRQ_vect & UF_UNALIGNED){
-
-        /* According to the riscv standard, unaligned memory access should be implemented
-         * by the IRQ handler (if hardware support is missing).
-         * However, since GCC can't generate code that performs unaligned accesses,
-         * we can treat an unaligned access as an error and reset the board as such
-         */
-        IRQerrorLog("Memory alignment error");
-        unexpectedInterrupt();
-    }
-
-    if(IRQ_vect & TIMER){
-
-        picorv32_setq_insn(q3, t6);
-        asm volatile("mv t6, %0"::"r"(miosix::TIMER_CLOCK/miosix::TICK_FREQ):"t6");
-        picorv32_timer_insn(zero, t6);
-        picorv32_getq_insn(t6, q3);
-        miosix::IRQtickInterrupt();
-
-    } else if(IRQ_vect & ECALL){
-
-        miosix::Scheduler::IRQfindNextThread();
-    }
-
-    if(IRQ_vect & 0xfffffff8){
-        /* these interrupts are disabled by default on the PicoSoC, as they
-         * are hardware driven (and configurable via the Verilog source)
-         */
-        unexpectedInterrupt();
-    }
-}
-
-void IRQEntrypoint() __attribute__((naked));
-void IRQEntrypoint()
-{
-    saveContext();
-    IRQstackOverflowCheck();
-    IRQHandler();
-    restoreContext();
-    picorv32_retirq_insn();
 }
 
 void initCtxsave(unsigned int *ctxsave, void *(*pc)(void *), unsigned int *sp,
@@ -181,14 +98,6 @@ void IRQportableStartKernel()
     //since there's no way to stop the scheduler, but we need to save it anyway.
     unsigned int s_ctxsave[miosix::CTXSAVE_SIZE];
 
-    picorv32_setq_insn(q3, t6);
-
-    asm volatile("mv t6, %0"::"r"(miosix::TIMER_CLOCK/miosix::TICK_FREQ):"t6");
-
-    picorv32_timer_insn(zero, t6);
-
-    picorv32_getq_insn(t6, q3);
-
     ctxsave=s_ctxsave;//make global ctxsave point to it
 
     //Note, we can't use enableInterrupts() now since the call is not matched
@@ -201,8 +110,7 @@ void IRQportableStartKernel()
 
 void sleepCpu()
 {
-    return; //picorv32 doesn't support a low power mode
+    return;
 }
-
 
 } //namespace miosix_private

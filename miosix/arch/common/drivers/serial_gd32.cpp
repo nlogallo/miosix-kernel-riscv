@@ -41,10 +41,12 @@
 
 using namespace std;
 
+static const int numPorts=3; //Supporting only USART1, USART2, USART3
+
 namespace miosix {
 
 // Pointer to serial port classes to let interrupts access the classes
-static GD32Serial *ports[2]={0};
+static GD32Serial *ports[numPorts]={0};
 
 static Mutex txMutex;
 static Mutex rxMutex;
@@ -64,55 +66,54 @@ GD32Serial::GD32Serial(int id, int baudrate) : Device(Device::TTY)
     u2tx::alternateFunction(7);
     u2rx::alternateFunction(7);
     
-    RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+    RCU_APB1EN |= RCU_APB1EN_USART2EN;
     
-    USART0->BRR=136<<4 | 12;
+    USART_BAUD(USART2) = 136 << 4 | 12;
     
-    USART0->CR1 = USART_CR1_UE
-                | USART_CR1_RXNEIE
-                | USART_CR1_TE
-                | USART_CR1_RE;
+    USART_CTL0(USART2) = USART_CTL0_UEN
+                       | USART_CTL0_REN
+                       | USART_CTL0_TEN;
+    
 
     // NVIC_SetPriority(USART2_IRQn, 15);
-    eclic_irq_enable(USART0_IRQn, 15, 15);
+    //eclic_irq_enable(USART0_IRQn, 15, 15);
 }
 
-ssize_t GD32Serial::writeBlock(const void *buffer, size_t size, off_t where) {
-    unique_lock<mutex> l(txMutex);
+ssize_t GD32Serial::writeBlock(uint32_t *buffer, size_t size, off_t where) {
+   std::unique_lock<Mutex> lock(txMutex);
     
     for(size_t i = 0; i < size; i++)
     {
-        while((USART0->SR & USART_SR_TXE)==0)  ;
-        USART0->DR=*buffer++;
+        while(USART_STAT_TBE==0);
+        USART_DATA(USART2) = USART_DATA_DATA & *buffer++;
     }
     return size;
 }
 
 void usart2irqIMPL()
 {
-    unsigned int status=USART->SR;
-    if(status & USART_SR_RXNE)
+    
+    if(USART_STAT_RBNE)
     {
-        char c=USART0->DR;
-        if((status & USART_SR_FE)==0)
+        char c=USART_DATA_DATA;
+        if((USART_STAT_FERR)==0)
         {
             bool hppw;
-            rwQueue.IRQput(c, hppw);
+            rxQueue.IRQput(c, hppw);
             if(hppw) Scheduler::IRQfindNextThread();
             }
         }
 }
 
-ssize_t GD32Serial::readBlock(void *buffer, size_t size, off_t where) {
+ssize_t GD32Serial::readBlock(uint16_t *buffer, size_t size, off_t where) {
 	if (size < 1) {
 		return 0;
 	}
 
-	unique_lock<mutex> l(rxMutex);
+	std::unique_lock<Mutex> lock(rxMutex);
 	char *buf = reinterpret_cast<char*>(buffer);
 
-	char c;
-	rxQueue.get(c);
+	char c = (char)GET_BITS(USART_DATA(USART2), 0U, 8U);
 	buf[0]=c;
 	return 1;
 }

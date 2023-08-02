@@ -480,7 +480,7 @@ diff -ruN gcc-9.2.0-old/libatomic/configure.tgt gcc-9.2.0/libatomic/configure.tg
          esac
  	;;
  
-+  arm*-miosix-eabi*)
++  arm*-miosix-eabi* | riscv32-miosix-elf*)
 +	config_path="miosix"
 +	;;
 +

@@ -59,6 +59,13 @@ Q := @
 ECHO := @echo
 endif
 
+# Select the correct perl kernel_global_objects file depending on the arch
+ifeq ("$(ARCH)","riscv_gd32vf103")
+	GLOBAL_OBJS_SCRIPT := "_tools/kernel_global_objects_riscv.pl"
+else
+	GLOBAL_OBJS_SCRIPT := "_tools/kernel_global_objects.pl"
+endif
+
 ## Replaces both "foo.cpp"-->"foo.o" and "foo.c"-->"foo.o"
 OBJ := $(addsuffix .o, $(basename $(SRC)))
 
@@ -76,7 +83,7 @@ DFLAGS    := -MMD -MP
 ## it must not end up in libmiosix.a
 all: $(OBJ) $(BOOT_FILE)
 	$(ECHO) "[PERL] Checking global objects"
-	$(Q)perl _tools/kernel_global_objects.pl $(OBJ)
+	$(Q)perl $(GLOBAL_OBJS_SCRIPT) $(OBJ)
 	$(ECHO) "[AR  ] libmiosix.a"
 	$(Q)$(AR) rcs libmiosix.a $(OBJ)
 

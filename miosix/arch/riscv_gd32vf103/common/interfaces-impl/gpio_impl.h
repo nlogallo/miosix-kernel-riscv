@@ -87,12 +87,12 @@ private:
  * Base class to implement non template-dependent functions that, if inlined,
  * would significantly increase code size
  */
-    class GpioBase
-    {
-    protected:
-        static void modeImpl(unsigned int p, unsigned char n, Mode::Mode_ m);
-        static void afImpl(unsigned int p, unsigned char n, unsigned char af);
-    };
+class GpioBase
+{
+protected:
+	static void modeImpl(unsigned int p, unsigned char n, Mode::Mode_ m);
+	static void afImpl(unsigned int p, unsigned char n, unsigned char af);
+};
 
 /**
  * This class allows to easiliy pass a Gpio as a parameter to a function.

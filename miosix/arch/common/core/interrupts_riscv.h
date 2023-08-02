@@ -34,7 +34,8 @@
  */
 __attribute__( ( always_inline ) ) static inline void __enable_irq(void)
 {
-    eclic_global_interrupt_enable();    
+	unsigned long tmp;
+    asm volatile ("csrrs %0, mstatus, 0x8" : "=r"(tmp));
 }
 
 
@@ -43,7 +44,8 @@ __attribute__( ( always_inline ) ) static inline void __enable_irq(void)
  */
 __attribute__( ( always_inline ) ) static inline void __disable_irq(void)
 {
-    eclic_global_interrupt_disable();    
+	unsigned long tmp;
+    asm volatile ("csrrc %0, mstatus, 0x8" : "=r"(tmp));
 }
 
 /**

@@ -2877,8 +2877,6 @@ else ifeq ($(ARCH),riscv_gd32vf103)
         ARCH_SRC :=                                  \
         $(BOARD_INC)/interfaces-impl/bsp.cpp
 
-		# TODO: add driver path
-
         ## Add a #define to allow querying board name
         CFLAGS_BASE   += -D_BOARD_GD32VF103CBT6_LONGAN_NANO
         CXXFLAGS_BASE += -D_BOARD_GD32VF103CBT6_LONGAN_NANO
@@ -2913,12 +2911,14 @@ else ifeq ($(ARCH),riscv_gd32vf103)
     ## Select architecture specific files
     ## These are the files in arch/<arch name>/common
 	## TODO: add driver files
-	ARCH_SRC :=                                  \
+	ARCH_SRC +=                                  \
+	arch/common/core/interrupts_riscv.cpp \
 	$(ARCH_INC)/interfaces-impl/portability.cpp \
 	$(ARCH_INC)/interfaces-impl/os_timer.cpp    \
 	$(ARCH_INC)/interfaces-impl/gpio_impl.cpp    \
 	$(ARCH_INC)/interfaces-impl/delays.cpp \
-	arch/common/drivers/serial_gd32.cpp
+	arch/common/drivers/serial_gd32.cpp \
+    arch/common/NMSIS/Device/GigaDevice/GD32VF103/Firmware/GD32VF103_standard_peripheral/Include/system_gd32vf103.c
 
     ## Select programmer command line
     ## This is the program that is invoked when the user types 'make program'

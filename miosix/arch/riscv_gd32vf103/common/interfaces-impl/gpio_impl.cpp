@@ -29,5 +29,7 @@
 #include "gpio_impl.h"
 
 namespace miosix {
-    //picosoc doesn't offer a gpio port, but the file is needed for the OS to compile
+// TODO: implement GpioBase
+void GpioBase::modeImpl(unsigned int p, unsigned char n, Mode::Mode_ m) {}
+void GpioBase::afImpl(unsigned int p, unsigned char n, unsigned char af) {}
 } //namespace miosix

@@ -56,6 +56,11 @@ OF SUCH DAMAGE.
 
  /* define value of high speed crystal oscillator (HXTAL) in Hz */
  #if !defined  HXTAL_VALUE  
+   #define HXTAL_VALUE    ((uint32_t)8000000) /*!< value of the external oscillator in Hz */
+   #define HXTAL_VALUE_25M  HXTAL_VALUE
+ #endif
+
+ #if !defined  HXTAL_VALUE  
    #ifdef GD32VF103R_START
    #define HXTAL_VALUE    ((uint32_t)25000000) /*!< value of the external oscillator in Hz */
    #define HXTAL_VALUE_8M  HXTAL_VALUE

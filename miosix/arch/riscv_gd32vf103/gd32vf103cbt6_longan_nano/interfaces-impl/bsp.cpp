@@ -54,7 +54,7 @@ void IRQbspInit()
 {
     //Init serial port
     DefaultConsole::instance().IRQset(
-        intrusive_ref_ptr<Device>(new GD32Serial(0,SERIAL_PORT_SPEED)));
+        intrusive_ref_ptr<Device>(new GD32Serial(defaultSerial,defaultSerialSpeed)));
 }
 
 void bspInit2()
@@ -70,18 +70,7 @@ void bspInit2()
 Shutdown system.
 \param and_return if true, this function returns after wakeup, if false calls
 system_reboot() immediately after wakeup
-\param t wakeup time, only allowed if WITH_RTC is #define'd
 */
-static void _shutdown(bool and_return, Time *t)
-{
-	reboot();
-}
-
-void sleep(Time *t)
-{
-    _shutdown(true,t);
-}
-
 /**
 This function disables filesystem (if enabled), serial port (if enabled) and
 puts the processor in deep sleep mode.<br>
@@ -97,7 +86,7 @@ minimize power consumption all unused GPIO must be set as output high.
 */
 void shutdown()
 {
-    _shutdown(false,NULL);
+    reboot();
 }
 
 void reboot()

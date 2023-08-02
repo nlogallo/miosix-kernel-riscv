@@ -31,6 +31,8 @@ void program_startup()
 {
     __disable_irq();
 
+	// TODO: infinite loop that turns on and off a led
+
     //SystemInit() is called *before* initializing .data and zeroing .bss
     SystemInit();
 
@@ -65,9 +67,8 @@ void program_startup()
 void Reset_Handler() __attribute__((noreturn, naked));
 void Reset_Handler()
 {
-    asm volatile("la sp, _main_stack_bottom");
-
-    program_startup();
+    asm volatile("la sp, _main_stack_top");
+    asm volatile("j _Z15program_startupv");
 }
 
 /**

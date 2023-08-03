@@ -26,8 +26,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#ifndef ATOMIC_OPS_IMPL_RISCV32_GD32VF103_H
-#define	ATOMIC_OPS_IMPL_RISCV32_GD32VF103_H
+#ifndef ATOMIC_OPS_IMPL_RISCV32_GD32_H
+#define	ATOMIC_OPS_IMPL_RISCV32_GD32_H
 
 #include "interfaces/arch_registers.h"
 
@@ -77,4 +77,4 @@ inline void *atomicFetchAndIncrement(void * const volatile * p, int offset,
 
 } //namespace miosix
 
-#endif //ATOMIC_OPS_IMPL_RISCV32_GD32VF103_H
+#endif //ATOMIC_OPS_IMPL_RISCV32_GD32_H

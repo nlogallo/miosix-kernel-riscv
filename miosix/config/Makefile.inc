@@ -761,7 +761,7 @@ else ifeq ($(OPT_BOARD),stm32f767zi_nucleo)
 else ifeq ($(OPT_BOARD),stm32f769ni_discovery)
     ARCH := cortexM7_stm32f7
 else ifeq ($(OPT_BOARD),gd32vf103cbt6_longan_nano)
-    ARCH := riscv_gd32vf103
+    ARCH := riscv_gd32
 else
     $(info Error: no board specified in miosix/config/Makefile.inc)
     $(error Error)
@@ -2853,11 +2853,11 @@ else ifeq ($(ARCH),cortexM4_atsam4l)
     $(ARCH_INC)/interfaces-impl/delays.cpp
     
 ##-----------------------------------------------------------------------------
-## ARCHITECTURE: riscv_gd32vf103
+## ARCHITECTURE: riscv_gd32
 ##
-else ifeq ($(ARCH),riscv_gd32vf103)
+else ifeq ($(ARCH),riscv_gd32)
     ## Base directory with header files for this board
-    ARCH_INC := arch/riscv_gd32vf103/common
+    ARCH_INC := arch/riscv_gd32/common
 
     ##-------------------------------------------------------------------------
     ## BOARD: gd32vf103cbt6_longan_nano
@@ -2865,7 +2865,7 @@ else ifeq ($(ARCH),riscv_gd32vf103)
     ifeq ($(OPT_BOARD),gd32vf103cbt6_longan_nano)
 
         ## Base directory with header files for this board
-        BOARD_INC := arch/riscv_gd32vf103/gd32vf103cbt6_longan_nano
+        BOARD_INC := arch/riscv_gd32/gd32vf103cbt6_longan_nano
 
         ## Select linker script and boot file
         ## Their path must be relative to the miosix directory.
@@ -2901,8 +2901,8 @@ else ifeq ($(ARCH),riscv_gd32vf103)
 
     ## Select appropriate compiler flags for both ASM/C/C++/linker
     AFLAGS_BASE   := -march=rv32imac
-    CFLAGS_BASE   += -D_ARCH_RISCV_GD32VF103 -march=rv32imac $(OPT_OPTIMIZATION) -c
-    CXXFLAGS_BASE += -D_ARCH_RISCV_GD32VF103 -march=rv32imac $(OPT_OPTIMIZATION) \
+    CFLAGS_BASE   += -D_ARCH_RISCV_GD32 -march=rv32imac $(OPT_OPTIMIZATION) -c
+    CXXFLAGS_BASE += -D_ARCH_RISCV_GD32 -march=rv32imac $(OPT_OPTIMIZATION) \
                      $(OPT_EXCEPT) -c
     LFLAGS_BASE   := -Wl,--gc-sections,-Map,main.map          					 \
                      -Wl,-T$(KPATH)/$(LINKER_SCRIPT) $(OPT_EXCEPT)  			 \

@@ -60,7 +60,7 @@ ECHO := @echo
 endif
 
 # Select the correct perl kernel_global_objects file depending on the arch
-ifeq ("$(ARCH)","riscv_gd32vf103")
+ifeq ("$(ARCH)","riscv_gd32")
 	GLOBAL_OBJS_SCRIPT := "_tools/kernel_global_objects_riscv.pl"
 else
 	GLOBAL_OBJS_SCRIPT := "_tools/kernel_global_objects.pl"

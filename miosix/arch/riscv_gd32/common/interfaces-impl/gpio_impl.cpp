@@ -31,27 +31,26 @@
 namespace miosix {
 
 void GpioBase::modeImpl(unsigned int p, unsigned char n, Mode::Mode_ m) {
-	uint16_t i;
-    uint32_t reg = 0U;
+	if (n > 7) {
+		// pin 8-15
+		n -= 8;
+		// mask
+		(GPIO_CTL1(p)) &= ~(0xf << (4 * n));
+		// set the mode on the nth 4 bits
+		(GPIO_CTL1(p)) |= (m & 0xf) << (4 * n);
+	} else {
+		// pin 0-7
+		// mask
+		(GPIO_CTL0(p)) &= ~(0xf << (4 * n));
+		// set the mode on the nth 4 bits
+		(GPIO_CTL0(p)) |= (m & 0xf) << (4 * n);
+	}
 
-	uint32_t temp_mode = (uint32_t) m;
-
-	// set speed -> up to 50MHz
-	uint8_t speed = ((uint8_t)0x03);
-	temp_mode |= (uint32_t) speed;
-
-    for (i = 0U; i < 8U; i++) {
-        if ((1U << i) & n) {
-            reg = GPIO_CTL0(p);
-
-            /* clear the specified pin mode bits */
-            reg &= ~GPIO_MODE_MASK(i);
-            /* set the specified pin mode bits */
-            reg |= GPIO_MODE_SET(i, temp_mode);
-            /* set GPIO_CTL0 register */
-            GPIO_CTL0(p) = reg;
-        }
-    }
+	// if the GPIO_OCTL bit is set, actually set it
+	if (m & 0x10)
+		(GPIO_OCTL(p)) |= 1 << n;
+	else
+		(GPIO_OCTL(p)) &= ~(1 << n);
 }
 
 void GpioBase::afImpl(unsigned int p, unsigned char n, unsigned char af) {}

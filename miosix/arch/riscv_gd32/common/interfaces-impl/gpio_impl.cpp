@@ -29,7 +29,31 @@
 #include "gpio_impl.h"
 
 namespace miosix {
-// TODO: implement GpioBase
-void GpioBase::modeImpl(unsigned int p, unsigned char n, Mode::Mode_ m) {}
+
+void GpioBase::modeImpl(unsigned int p, unsigned char n, Mode::Mode_ m) {
+	uint16_t i;
+    uint32_t reg = 0U;
+
+	uint32_t temp_mode = (uint32_t) m;
+
+	// set speed -> up to 50MHz
+	uint8_t speed = ((uint8_t)0x03);
+	temp_mode |= (uint32_t) speed;
+
+    for (i = 0U; i < 8U; i++) {
+        if ((1U << i) & n) {
+            reg = GPIO_CTL0(p);
+
+            /* clear the specified pin mode bits */
+            reg &= ~GPIO_MODE_MASK(i);
+            /* set the specified pin mode bits */
+            reg |= GPIO_MODE_SET(i, temp_mode);
+            /* set GPIO_CTL0 register */
+            GPIO_CTL0(p) = reg;
+        }
+    }
+}
+
 void GpioBase::afImpl(unsigned int p, unsigned char n, unsigned char af) {}
+
 } //namespace miosix

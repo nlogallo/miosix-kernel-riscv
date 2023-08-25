@@ -10,8 +10,7 @@ ENTRY(_Z13Reset_Handlerv)
 
 MEMORY
 {
-    sram(wx)  : ORIGIN = 0x20010000, LENGTH = 32K
-    dtcm(wx)  : ORIGIN = 0x20000000, LENGTH = 8K     /* Used for main stack */
+    sram(wx)  : ORIGIN = 0x20000000, LENGTH = 32K
     flash(rx) : ORIGIN = 0x08000000, LENGTH = 128K
 }
 
@@ -24,6 +23,7 @@ SECTIONS
     {
         /* Startup code must go at address 0 */
         KEEP(*(.isr_vector))
+        KEEP(*(.isr_vector2))
         
         *(.text)
         *(.text.*)

@@ -13,3 +13,7 @@ main.map
 # Exclude Mac OS X temporary
 ._*
 .DS_Store
+
+# Exclude GCC
+miosix/_tools/compiler/*
+

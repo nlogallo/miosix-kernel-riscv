@@ -75,6 +75,34 @@ void IRQosTimerSetInterrupt(long long ns) noexcept
 // {
 //     //TODO
 // }
+// 
+//
+// IRQinitTimer(){
+// 		//Enable timer from RCU
+// 		rcu_periph_clock enable(RCU_TIMER1); //Enable TIMER1 from RCU
+// 		rcu_periph_reset_enable(RCU_TIMER1RST); //Reset timer
+// 		rcu_periph_reset_disable(RCU_TIMER1RST);
+//
+// 		//Setup TIMER1 base configuration
+// 		//Values from driver function timer_struct_para_init()
+// 		TIMER_PSC(TIMER1) = 0; //no prescaler
+//      TIMER_CTL0(TIMER1) &= (~(uint32_t)(TIMER_CTL0_DIR | TIMER_CTL0_CAM));
+//      TIMER_CTL0(TIMER1) |= (uint32_t)(TIMER_COUNTER_EDGE & ALIGNEDMODE_MASK); //Edge aligned
+//      TIMER_CTL0(TIMER1) |= (uint32_t)(TIMER_COUNTER_UP & COUNTERDIRECTION_MASK); //Up-counter mode
+// 		TIMER_CAR(TIMER1) = 65536U; //Autoreload value set to max(?) 
+//      TIMER_CTL0(TIMER1) &= (~(uint32_t)TIMER_CTL0_CKDIV);
+//      TIMER_CTL0(TIMER1) |= (uint32_t)(TIMER_CKDIV_DIV1 & CLOCKDIVISION_MASK); //Reset Ckdiv bit
+//      TIMER_SWEVG(TIMER1) |= (uint32_t)TIMER_SWEVG_UPG //Generate update event
+//
+//		TIMER_CTL0(TIMER1) |= (uint32_t)TIMER_CTL0_CEN; //Enable counter, might be set automatically by hardware
+//
+//		//TODO: Some stuff is missing, like setting of output channels and so on
+//}
+//
+//
+//
+//
+// 		
 
 unsigned int osTimerGetFrequency()
 {

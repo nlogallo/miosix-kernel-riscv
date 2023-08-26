@@ -34,7 +34,7 @@
 #include "interfaces/arch_registers.h"
 
 /**
-  * @brief General Purpose I/O. NOTE: picosoc doesn't support it, but it's needed to compile miosix
+  * @brief General Purpose I/O.
   */
 
 typedef struct {} GPIO_TypeDef;
@@ -49,14 +49,17 @@ public:
      */
     enum Mode_
     {
-        INPUT              =  0, ///Floating Input       (MODE=00 TYPE=0 PUP=00)
-        INPUT_PULL_UP      =  1, ///Pullup   Input       (MODE=00 TYPE=0 PUP=01)
-        INPUT_PULL_DOWN    =  2, ///Pulldown Input       (MODE=00 TYPE=0 PUP=10)
-        INPUT_ANALOG       = 24, ///Analog   Input       (MODE=11 TYPE=0 PUP=00)
-        OUTPUT             =  8, ///Push Pull  Output    (MODE=01 TYPE=0 PUP=00)
-        OPEN_DRAIN         = 12, ///Open Drain Output    (MODE=01 TYPE=1 PUP=00)
-        ALTERNATE          = 16, ///Alternate function   (MODE=10 TYPE=0 PUP=00)
-        ALTERNATE_OD       = 20, ///Alternate Open Drain (MODE=10 TYPE=1 PUP=00)
+		// first bit is the OCTL bit (only used in INPUT_PULL_UP and INPUT_PULL_DOWN)
+		// second-third bits are the CTL bits
+		// fourth-fifth bits are the MD bits
+        INPUT              = 0b00100, ///Floating Input
+        INPUT_PULL_UP      = 0b11000, ///Pullup   Input
+        INPUT_PULL_DOWN    = 0b01000, ///Pulldown Input
+        INPUT_ANALOG       = 0b00000, ///Analog   Input
+        OUTPUT             = 0b00011, ///Push Pull  Output
+        OPEN_DRAIN         = 0b00111, ///Open Drain Output
+        ALTERNATE          = 0b01011, ///Alternate function
+        ALTERNATE_OD       = 0b01111, ///Alternate Open Drain
     };
 private:
     Mode(); //Just a wrapper class, disallow creating instances
@@ -105,7 +108,7 @@ class GpioPin : private GpioBase
 public:
     /**
      * Constructor
-     * \param p GPIOA_BASE, GPIOB_BASE, ... as #define'd in stm32f2xx.h
+     * \param p GPIOA_BASE, GPIOB_BASE, ... as #define'd in gd32vf103_gpio.h
      * \param n which pin (0 to 15)
      */
     GpioPin(unsigned int p, unsigned char n)
@@ -138,17 +141,17 @@ public:
 
     /**
      * Set the pin to 1, if it is an output
-	 * methods copieed from gd32vf103_gpio.c
+	 * methods copied from gd32vf103_gpio.c
      */
     void high() {
-    	GPIO_BOP(reinterpret_cast<unsigned int>(p)) = (uint32_t) n;
+    	GPIO_BOP(reinterpret_cast<unsigned int>(p)) = 1 << n;
 	}
 
     /**
      * Set the pin to 0, if it is an output
      */
     void low() {
-    	GPIO_BC(reinterpret_cast<unsigned int>(p)) = (uint32_t) n;
+    	GPIO_BOP(reinterpret_cast<unsigned int>(p)) = 1 << (n + 16);
 	}
 
     /**
@@ -157,10 +160,10 @@ public:
      */
     int value()
     {
-		if ((uint32_t) RESET != (GPIO_ISTAT(reinterpret_cast<unsigned int>(p)) & (n))) {
-			return SET;
+		if ((GPIO_ISTAT(reinterpret_cast<unsigned int>(p))) & (1 << n)) {
+			return 1;
 		} else {
-			return RESET;
+			return 0;
 		}
     }
 
@@ -171,7 +174,7 @@ private:
 
 /**
  * Gpio template class
- * \param P GPIOA_BASE, GPIOB_BASE, ... as #define'd in stm32f2xx.h
+ * \param P GPIOA_BASE, GPIOB_BASE, ... as #define'd in gd32vf103_gpio.h
  * \param N which pin (0 to 15)
  * The intended use is to make a typedef to this class with a meaningful name.
  * \code
@@ -213,14 +216,14 @@ public:
      * Set the pin to 1, if it is an output
      */
     static void high() {
-    	GPIO_BOP(P) = (uint32_t) N;
+    	(GPIO_BOP(P)) = 1 << N;
 	}
 
     /**
      * Set the pin to 0, if it is an output
      */
     static void low() {
-    	GPIO_BC(P) = (uint32_t) N;
+    	(GPIO_BOP(P)) = 1 << (N + 16);
 	}
 
     /**
@@ -229,10 +232,10 @@ public:
      */
     static int value()
     {
-		if ((uint32_t) RESET != (GPIO_ISTAT(P) & (N))) {
-			return SET;
+		if ((GPIO_ISTAT(P)) & (1 << N)) {
+			return 1;
 		} else {
-			return RESET;
+			return 0;
 		}
     }
 

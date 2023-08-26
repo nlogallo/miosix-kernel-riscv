@@ -32,7 +32,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#include "gd32vf103_usart.h"
+#include "../Include/gd32vf103_usart.h"
 
 /*!
     \brief      reset USART/UART 

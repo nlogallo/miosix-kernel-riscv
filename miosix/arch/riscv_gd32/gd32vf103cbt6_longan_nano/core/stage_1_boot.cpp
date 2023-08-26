@@ -31,8 +31,6 @@ void program_startup()
 {
     __disable_irq();
 
-	// TODO: infinite loop that turns on and off a led
-
     //SystemInit() is called *before* initializing .data and zeroing .bss
     SystemInit();
 
@@ -64,7 +62,7 @@ void program_startup()
 /**
  * Reset handler, called by hardware immediately after reset
  */
-void Reset_Handler() __attribute__((noreturn, naked));
+void Reset_Handler() __attribute__((noreturn, naked, used));
 void Reset_Handler()
 {
     asm volatile("la sp, _main_stack_top");
@@ -147,20 +145,37 @@ void __attribute__((weak)) CAN1_RX1_IRQHandler();
 void __attribute__((weak)) CAN1_EWMC_IRQHandler();
 void __attribute__((weak)) USB_FS_IRQHandler();
 
-//Stack top, defined in the linker script
-extern char _main_stack_top asm("_main_stack_top");
+/**
+ * This architecture needs on the first bytes a jump to the Reset_Handler; to
+ * achieve so, put this jump in the ".isr_vector" section and put the actual
+ * interrupts in a different section called ".isr_vector2"
+ */
+void __attribute__ ((naked, section(".isr_vector"))) jumpTo() {
+	asm volatile("j _Z13Reset_Handlerv");
+}
 
-//Interrupt vectors, must be placed @ address 0x00000000
+//Interrupt vectors
 //The extern declaration is required otherwise g++ optimizes it out
 extern void (* const __Vectors[])();
-void (* const __Vectors[])() __attribute__ ((section(".isr_vector"))) =
+void (* const __Vectors[])() __attribute__ ((section(".isr_vector2"))) =
 {
-    reinterpret_cast<void (*)()>(&_main_stack_top),/* Stack pointer*/
-    Reset_Handler,              /* Reset Handler */
-
     /* External Interrupts */
+	0,
+	0,
 	ECLIC_MSIP_IRQHandler,
+	0,
+	0,
+	0,
 	ECLIC_MTIP_IRQHandler,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
 	ECLIC_BWEI_IRQHandler,
 	ECLIC_PMOVI_IRQHandler,
 	WWDGT_IRQHandler,

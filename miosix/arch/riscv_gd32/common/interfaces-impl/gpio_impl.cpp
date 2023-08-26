@@ -29,7 +29,30 @@
 #include "gpio_impl.h"
 
 namespace miosix {
-// TODO: implement GpioBase
-void GpioBase::modeImpl(unsigned int p, unsigned char n, Mode::Mode_ m) {}
+
+void GpioBase::modeImpl(unsigned int p, unsigned char n, Mode::Mode_ m) {
+	if (n > 7) {
+		// pin 8-15
+		n -= 8;
+		// mask
+		(GPIO_CTL1(p)) &= ~(0xf << (4 * n));
+		// set the mode on the nth 4 bits
+		(GPIO_CTL1(p)) |= (m & 0xf) << (4 * n);
+	} else {
+		// pin 0-7
+		// mask
+		(GPIO_CTL0(p)) &= ~(0xf << (4 * n));
+		// set the mode on the nth 4 bits
+		(GPIO_CTL0(p)) |= (m & 0xf) << (4 * n);
+	}
+
+	// if the GPIO_OCTL bit is set, actually set it
+	if (m & 0x10)
+		(GPIO_OCTL(p)) |= 1 << n;
+	else
+		(GPIO_OCTL(p)) &= ~(1 << n);
+}
+
 void GpioBase::afImpl(unsigned int p, unsigned char n, unsigned char af) {}
+
 } //namespace miosix

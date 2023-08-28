@@ -3,7 +3,7 @@ _main_stack_top  = 0x20000000 + _main_stack_size;
 ASSERT(_main_stack_size   % 8 == 0, "MAIN stack size error");
 
 /* Mapping the heap to the end of SRAM2 */
-_heap_end = 0x20000000 + 4K;                       /* end of available ram */
+_heap_end = 0x20000000 + 32K;                       /* end of available ram */
 
 /* Identify the Entry Point  */
 ENTRY(_Z13Reset_Handlerv)

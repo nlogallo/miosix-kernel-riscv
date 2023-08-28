@@ -189,8 +189,7 @@ inline void doEnableInterrupts()
 
 inline bool checkAreInterruptsEnabled()
 {
-	// TODO: find how to check if interrupts are enabled
-	return false;
+	return __check_are_irqs_enabled();
 }
 
 #ifdef WITH_PROCESSES

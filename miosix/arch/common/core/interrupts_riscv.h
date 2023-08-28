@@ -48,6 +48,18 @@ __attribute__( ( always_inline ) ) static inline void __disable_irq(void)
     asm volatile ("csrrc %0, mstatus, 0x8" : "=r"(tmp));
 }
 
+
+/**
+  \brief   Check if IRQS are enabled
+ */
+__attribute__( ( always_inline ) ) static inline bool __check_are_irqs_enabled(void)
+{
+	unsigned long tmp;
+    asm volatile ("csrr %0, mstatus": "=r"(tmp));
+	return tmp & (1 << 8);
+}
+
+
 /**
  * Called when an unexpected interrupt occurs.
  * It is called by stage_1_boot.cpp for all weak interrupts not defined.

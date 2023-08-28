@@ -87,8 +87,6 @@ void initCtxsave(unsigned int *ctxsave, void *(*pc)(void *), unsigned int *sp,
     ctxsave[28]=0;
     ctxsave[29]=0;
     ctxsave[30]=(unsigned int)miosix::Thread::threadLauncher; //q0 contains the IRQ return address
-
-
 }
 
 

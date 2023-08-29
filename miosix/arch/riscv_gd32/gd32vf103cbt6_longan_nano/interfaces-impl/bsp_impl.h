@@ -43,21 +43,57 @@ namespace miosix {
 \{
 */
 
+// Input button on the board (BOOT0)
+typedef miosix::Gpio<GPIOA, 8> button;
+
 /**
  * \internal
  * used by the ledOn() and ledOff() implementation
  */
-typedef Gpio<GPIO_BASE,13> _led;
+typedef Gpio<GPIOC, 13> red_led;
+typedef Gpio<GPIOA,  1> green_led;
+typedef Gpio<GPIOA,  2> blue_led;
 
-inline void ledOn()
+inline void redLedOn()
 {
     //Led is connected to VCC, so to turn it on the GPIO has to be low
-    _led::low();
+    red_led::low();
 }
 
-inline void ledOff()
+inline void redLedOff()
 {
-    _led::high();
+    red_led::high();
+}
+
+inline void greenLedOn()
+{
+    //Led is connected to VCC, so to turn it on the GPIO has to be low
+    green_led::low();
+}
+
+inline void greenLedOff()
+{
+    green_led::high();
+}
+
+inline void blueLedOn()
+{
+    //Led is connected to VCC, so to turn it on the GPIO has to be low
+    blue_led::low();
+}
+
+inline void blueLedOff()
+{
+    blue_led::high();
+}
+
+inline void ledOn() {
+	// select green as the "default" LED
+	greenLedOn();
+}
+
+inline void ledOff() {
+	greenLedOff();
 }
 
 /**

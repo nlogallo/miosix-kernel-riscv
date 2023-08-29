@@ -26,83 +26,159 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/ 
 
-#include <cstring>
-#include <errno.h>
-#include <termios.h>
-#include "serial_gd32.h"
-#include "kernel/sync.h"
-#include "kernel/scheduler/scheduler.h"
-#include "interfaces/portability.h"
-#include "filesystem/ioctl.h"
-
 #include <mutex>
-#include "kernel/queue.h"
+#include "serial_gd32.h"
+#include "kernel/scheduler/scheduler.h"
+#include "kernel/error.h"
 #include "interfaces/gpio.h"
 
 using namespace std;
 
-static const int numPorts=3; //Supporting only USART1, USART2, USART3
+static const int numPorts=3; //Supporting only USART0, USART1 and USART2
 
-namespace miosix {
+// TX and RX pins
+typedef miosix::Gpio<GPIOA,  9>  u0tx;
+typedef miosix::Gpio<GPIOA, 10> u0rx;
+
+typedef miosix::Gpio<GPIOA, 2>  u1tx;
+typedef miosix::Gpio<GPIOA, 3>  u1rx;
+
+typedef miosix::Gpio<GPIOB, 10> u2tx;
+typedef miosix::Gpio<GPIOB, 11> u2rx;
 
 // Pointer to serial port classes to let interrupts access the classes
-static GD32Serial *ports[numPorts]={0};
+static miosix::GD32Serial *ports[numPorts]={0};
 
-static Mutex txMutex;
-static Mutex rxMutex;
-static Queue<char, 64> rxQueue;
+/**
+ * \internal interrupt routine for usart0 actual implementation
+ */
+void __attribute__((noinline)) usart0irqImpl()
+{
+   if(ports[0]) ports[0]->IRQhandleInterrupt();
+}
+
+/**
+ * \internal interrupt routine for usart0
+ */
+void __attribute__((naked)) USART0_IRQHandler()
+{
+    saveContext();
+    asm volatile("j _Z13usart0irqImplv");
+    restoreContext();
+}
+
+/**
+ * \internal interrupt routine for usart1 actual implementation
+ */
+void __attribute__((noinline)) usart1irqImpl()
+{
+   if(ports[1]) ports[1]->IRQhandleInterrupt();
+}
+
+/**
+ * \internal interrupt routine for usart1
+ */
+void __attribute__((naked)) USART1_IRQHandler()
+{
+    saveContext();
+    asm volatile("j _Z13usart1irqImplv");
+    restoreContext();
+}
+
+/**
+ * \internal interrupt routine for usart2 actual implementation
+ */
+void __attribute__((noinline)) usart2irqImpl()
+{
+   if(ports[2]) ports[2]->IRQhandleInterrupt();
+}
+
+/**
+ * \internal interrupt routine for usart2
+ */
+void __attribute__((naked)) USART2_IRQHandler()
+{
+    saveContext();
+    asm volatile("j _Z13usart2irqImplv");
+    restoreContext();
+}
+
+namespace miosix {
 
 //
 // class GD32Serial
 //
-GD32Serial::GD32Serial(int id, int baudrate) : Device(Device::TTY)
+GD32Serial::GD32Serial(int id, int baudrate)
+	: Device(Device::TTY), portId(id)
 {
     InterruptDisableLock dLock;
-    
-    using u2tx=Gpio<GPIO_BASE,2>;
-    using u2rx=Gpio<GPIO_BASE,3>;
-    u2tx::mode(Mode::ALTERNATE);
-    u2rx::mode(Mode::ALTERNATE);
-    u2tx::alternateFunction(7);
-    u2rx::alternateFunction(7);
-    
-    RCU_APB1EN |= RCU_APB1EN_USART2EN;
-    
-    USART_BAUD(USART2) = 136 << 4 | 12;
-    
-    USART_CTL0(USART2) = USART_CTL0_UEN
-                       | USART_CTL0_REN
-                       | USART_CTL0_TEN;
-    
 
-    // NVIC_SetPriority(USART2_IRQn, 15);
-    //eclic_irq_enable(USART0_IRQn, 15, 15);
+    ports[id]=this;
+
+	// set the pins, enable the USART clock, enable the correct interrupt and select the correct port
+	switch(id) {
+		case 0:
+			u0tx::mode(Mode::ALTERNATE);
+			u0rx::mode(Mode::INPUT);
+    		RCU_APB2EN |= RCU_APB2EN_USART0EN;
+			miosix_private::doEnableInterrupt(USART0_IRQn);
+			port = USART0;
+			break;
+		case 1:
+			u1tx::mode(Mode::ALTERNATE);
+			u1rx::mode(Mode::INPUT);
+    		RCU_APB1EN |= RCU_APB1EN_USART1EN;
+			miosix_private::doEnableInterrupt(USART1_IRQn);
+			port = USART1;
+			break;
+		case 2:
+			u2tx::mode(Mode::ALTERNATE);
+			u2rx::mode(Mode::INPUT);
+    		RCU_APB1EN |= RCU_APB1EN_USART2EN;
+			miosix_private::doEnableInterrupt(USART2_IRQn);
+			port = USART2;
+			break;
+		default:
+			errorHandler(UNEXPECTED);
+	}
+
+	// set the baud rate
+	uint32_t clock = HXTAL_VALUE;
+    uint32_t udiv = (clock + baudrate/2U) / baudrate;
+    uint32_t intdiv = udiv & (0x0000fff0U);
+    uint32_t fradiv = udiv & (0x0000000fU);
+    USART_BAUD(port) = ((USART_BAUD_FRADIV | USART_BAUD_INTDIV) & (intdiv | fradiv));
+
+	USART_CTL0(port) = USART_CTL0_UEN
+					   | USART_CTL0_RBNEIE
+					   | USART_CTL0_TEN
+					   | USART_CTL0_REN;
 }
 
-ssize_t GD32Serial::writeBlock(uint32_t *buffer, size_t size, off_t where) {
-   std::unique_lock<Mutex> lock(txMutex);
-    
-    for(size_t i = 0; i < size; i++)
-    {
-        while(USART_STAT_TBE==0);
-        USART_DATA(USART2) = USART_DATA_DATA & *buffer++;
-    }
-    return size;
-}
-
-void usart2irqIMPL()
+void GD32Serial::IRQhandleInterrupt()
 {
-    
-    if(USART_STAT_RBNE)
+    if((USART_STAT(port) & USART_STAT_RBNE) != 0)
     {
-        char c=USART_DATA_DATA;
-        if((USART_STAT_FERR)==0)
+		char c = (char)GET_BITS(USART_DATA(port), 0U, 8U);
+    	if((USART_STAT(port) & USART_STAT_FERR) == 0)
         {
             bool hppw;
             rxQueue.IRQput(c, hppw);
             if(hppw) Scheduler::IRQfindNextThread();
-            }
-        }
+		}
+	}
+}
+
+ssize_t GD32Serial::writeBlock(uint32_t *buffer, size_t size, off_t where) {
+   std::unique_lock<Mutex> lock(txMutex);
+
+    for(size_t i = 0; i < size; i++)
+    {
+		// wait until the tx is empty
+        while((USART_STAT(port) & USART_STAT_TBE) == 0) ;
+        USART_DATA(port) = USART_DATA_DATA & *buffer++;
+    }
+    return size;
 }
 
 ssize_t GD32Serial::readBlock(uint16_t *buffer, size_t size, off_t where) {
@@ -113,8 +189,10 @@ ssize_t GD32Serial::readBlock(uint16_t *buffer, size_t size, off_t where) {
 	std::unique_lock<Mutex> lock(rxMutex);
 	char *buf = reinterpret_cast<char*>(buffer);
 
-	char c = (char)GET_BITS(USART_DATA(USART2), 0U, 8U);
-	buf[0]=c;
+	// get the char put in the queue by the interrupt
+	char c;
+	rxQueue.get(c);
+	buf[0] = c;
 	return 1;
 }
 

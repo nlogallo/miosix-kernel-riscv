@@ -31,18 +31,10 @@
 * Board support package, this file initializes hardware.
 ************************************************************************/
 
-#include <cstdlib>
-#include <inttypes.h>
 #include <sys/ioctl.h>
 #include "interfaces/bsp.h"
-#include "core/interrupts.h"
 #include "interfaces/delays.h"
 #include "drivers/serial.h"
-#include "kernel/kernel.h"
-#include "kernel/sync.h"
-#include "interfaces/portability.h"
-#include "config/miosix_settings.h"
-#include "kernel/logging.h"
 
 namespace miosix {
 
@@ -52,9 +44,33 @@ namespace miosix {
 
 void IRQbspInit()
 {
-    //Init serial port
+    // enable all gpios
+	RCU_APB2EN |= RCU_APB2EN_AFEN;
+	RCU_APB2EN |= RCU_APB2EN_PAEN;
+	RCU_APB2EN |= RCU_APB2EN_PBEN;
+	RCU_APB2EN |= RCU_APB2EN_PCEN;
+	RCU_APB2EN |= RCU_APB2EN_PDEN;
+	RCU_APB2EN |= RCU_APB2EN_PEEN;
+
+    button::mode(Mode::INPUT_PULL_UP);
+
+    red_led::mode(Mode::OUTPUT);
+    green_led::mode(Mode::OUTPUT);
+    blue_led::mode(Mode::OUTPUT);
+
+	redLedOff();
+	greenLedOff();
+	blueLedOff();
+
+	// check that the LEDs work
+    ledOn();
+    delayMs(1000);
+    ledOff();
+    delayMs(1000);
+
+    // init serial port TODO: doesn't work
     DefaultConsole::instance().IRQset(
-        intrusive_ref_ptr<Device>(new GD32Serial(defaultSerial,defaultSerialSpeed)));
+			intrusive_ref_ptr<Device>(new GD32Serial(defaultSerial, defaultSerialSpeed)));
 }
 
 void bspInit2()
@@ -67,22 +83,7 @@ void bspInit2()
 
 /**
 \internal
-Shutdown system.
-\param and_return if true, this function returns after wakeup, if false calls
-system_reboot() immediately after wakeup
-*/
-/**
-This function disables filesystem (if enabled), serial port (if enabled) and
-puts the processor in deep sleep mode.<br>
-Wakeup occurs when p0.14 goes low, but instead of sleep(), a new boot happens.
-<br>This function does not return.<br>
-WARNING: close all files before using this function, since it unmounts the
-filesystem.<br>
-When in shutdown mode, power consumption of the miosix board is reduced to ~
-150uA, however, true power consumption depends on what is connected to the GPIO
-pins. The user is responsible to put the devices connected to the GPIO pin in the
-minimal power consumption mode before calling shutdown(). Please note that to
-minimize power consumption all unused GPIO must be set as output high.
+Reboots system
 */
 void shutdown()
 {

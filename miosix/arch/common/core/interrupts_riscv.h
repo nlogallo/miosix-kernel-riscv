@@ -34,8 +34,9 @@
  */
 __attribute__( ( always_inline ) ) static inline void __enable_irq(void)
 {
-	unsigned long tmp;
-    asm volatile ("csrrs %0, mstatus, 0x8" : "=r"(tmp));
+	unsigned long tmp1, tmp2;
+	asm volatile ("csrrs %0, mstatus, 0x8" : "=r"(tmp1));
+	asm volatile ("csrrs %0, mie, 0xb" : "=r"(tmp2));
 }
 
 
@@ -45,7 +46,7 @@ __attribute__( ( always_inline ) ) static inline void __enable_irq(void)
 __attribute__( ( always_inline ) ) static inline void __disable_irq(void)
 {
 	unsigned long tmp;
-    asm volatile ("csrrc %0, mstatus, 0x8" : "=r"(tmp));
+	asm volatile ("csrrc %0, mstatus, 0x8" : "=r"(tmp));
 }
 
 
@@ -55,10 +56,29 @@ __attribute__( ( always_inline ) ) static inline void __disable_irq(void)
 __attribute__( ( always_inline ) ) static inline bool __check_are_irqs_enabled(void)
 {
 	unsigned long tmp;
-    asm volatile ("csrr %0, mstatus": "=r"(tmp));
+	asm volatile ("csrr %0, mstatus": "=r"(tmp));
 	return tmp & (1 << 8);
 }
 
+
+/**
+  \brief   Enable a single IRQ
+ */
+__attribute__( ( always_inline ) ) static inline void __enable_one_irq(int interrupt_number)
+{
+	unsigned long tmp;
+	asm volatile ("csrrs %0, mie, %1" : "=r"(tmp) : "r"(interrupt_number));
+}
+
+
+/**
+  \brief   Disable a single IRQ
+ */
+__attribute__( ( always_inline ) ) static inline void __disable_one_irq(int interrupt_number)
+{
+	unsigned long tmp;
+	asm volatile ("csrrc %0, mie, %1" : "=r"(tmp) : "r"(interrupt_number));
+}
 
 /**
  * Called when an unexpected interrupt occurs.

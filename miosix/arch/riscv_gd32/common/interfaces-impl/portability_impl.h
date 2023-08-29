@@ -55,12 +55,12 @@
  * *ctxsave+120 --> q0
  * Register x0 (zero register) is not saved, since is constant
  * Register gp (x3) is not saved, since its value must be constant
- * to allow for linker relaxation)
+ * to allow for linker relaxation) TODO: check this thing
  */
 extern "C" {
 extern volatile unsigned int *ctxsave;
 }
-const int stackPtrOffsetInCtxsave=0; ///< Allows to locate the stack pointer
+const int stackPtrOffsetInCtxsave=1; ///< Allows to locate the stack pointer
 
 /**
  * \internal
@@ -71,46 +71,53 @@ const int stackPtrOffsetInCtxsave=0; ///< Allows to locate the stack pointer
 
 #define saveContext()                                                          \
 {                                                                              \
-    asm volatile(                                                              \
+	asm volatile(                                                              \
+			/* save t0 on the stack */                                         \
+			"addi sp, sp, -4                       \n"                         \
+			"sw t0, 0(sp)                          \n"                         \
+			/* save the address of ctxsave into t0 */                          \
             "la t0,    ctxsave                     \n"                         \
             "lw t0,      0(t0)                     \n"                         \
-            "sw ra,  0*4+0(t0)                     \n"                         \
-            "sw sp,  1*4+0(t0)                     \n"                         \
-            "sw tp,  2*4+0(t0)                     \n"                         \
-             /*not t0  for now*/                                               \
-            "sw t1,  4*4+0(t0)                     \n"                         \
-            "sw t2,  5*4+0(t0)                     \n"                         \
-            "sw s0,  6*4+0(t0)                     \n"                         \
-            "sw s1,  7*4+0(t0)                     \n"                         \
-            "sw a0,  8*4+0(t0)                     \n"                         \
-            "sw a1,  9*4+0(t0)                     \n"                         \
-            "sw a2, 10*4+0(t0)                     \n"                         \
-            "sw a3, 11*4+0(t0)                     \n"                         \
-            "sw a4, 12*4+0(t0)                     \n"                         \
-            "sw a5, 13*4+0(t0)                     \n"                         \
-            "sw a6, 14*4+0(t0)                     \n"                         \
-            "sw a7, 15*4+0(t0)                     \n"                         \
-            "sw s2, 16*4+0(t0)                     \n"                         \
-            "sw s3, 17*4+0(t0)                     \n"                         \
-            "sw s4, 18*4+0(t0)                     \n"                         \
-            "sw s5, 19*4+0(t0)                     \n"                         \
-            "sw s6, 20*4+0(t0)                     \n"                         \
-            "sw s7, 21*4+0(t0)                     \n"                         \
-            "sw s8, 22*4+0(t0)                     \n"                         \
-            "sw s9, 23*4+0(t0)                     \n"                         \
-            "sw s10,24*4+0(t0)                     \n"                         \
-            "sw s11,25*4+0(t0)                     \n"                         \
-            "sw t3, 26*4+0(t0)                     \n"                         \
-            "sw t4, 27*4+0(t0)                     \n"                         \
-            "sw t5, 28*4+0(t0)                     \n"                         \
-            "sw t6, 29*4+0(t0)                     \n"                         \
-    );                                                                         \
-    /* Save q0 */                                                              \
-    asm volatile("sw t1, 30*4+0(t0)":::"t1");                                  \
-    /* Save original t0 value */                                               \
-    asm volatile("sw t1, 3*4+0(t0)":::"t1");                                   \
-    /* Restore t0 and t1 */                                                    \
-    asm volatile("la sp, _main_stack_top");                                    \
+			/* store the registers from ctxsave */                             \
+            "sw ra,   0*4+0(t0)                    \n"                         \
+            /* skip sp for now */                                              \
+            "sw tp,   2*4+0(t0)                    \n"                         \
+            /* skip t0 for now */                                              \
+            "sw t1,   4*4+0(t0)                    \n"                         \
+            "sw t2,   5*4+0(t0)                    \n"                         \
+            "sw s0,   6*4+0(t0)                    \n"                         \
+            "sw s1,   7*4+0(t0)                    \n"                         \
+            "sw a0,   8*4+0(t0)                    \n"                         \
+            "sw a1,   9*4+0(t0)                    \n"                         \
+            "sw a2,  10*4+0(t0)                    \n"                         \
+            "sw a3,  11*4+0(t0)                    \n"                         \
+            "sw a4,  12*4+0(t0)                    \n"                         \
+            "sw a5,  13*4+0(t0)                    \n"                         \
+            "sw a6,  14*4+0(t0)                    \n"                         \
+            "sw a7,  15*4+0(t0)                    \n"                         \
+            "sw s2,  16*4+0(t0)                    \n"                         \
+            "sw s3,  17*4+0(t0)                    \n"                         \
+            "sw s4,  18*4+0(t0)                    \n"                         \
+            "sw s5,  19*4+0(t0)                    \n"                         \
+            "sw s6,  20*4+0(t0)                    \n"                         \
+            "sw s7,  21*4+0(t0)                    \n"                         \
+            "sw s8,  22*4+0(t0)                    \n"                         \
+            "sw s9,  23*4+0(t0)                    \n"                         \
+            "sw s10, 24*4+0(t0)                    \n"                         \
+            "sw s11, 25*4+0(t0)                    \n"                         \
+            "sw t3,  26*4+0(t0)                    \n"                         \
+            "sw t4,  27*4+0(t0)                    \n"                         \
+            "sw t5,  28*4+0(t0)                    \n"                         \
+            "sw t6,  29*4+0(t0)                    \n"                         \
+            /* get t0 from the stack in t1 */                                  \
+			"lw t1,  0(sp)                        \n"                          \
+			"add sp, sp, 4                        \n"                          \
+            /* store t0 (in t1) and the sp */                                  \
+            "sw t1,  3*4+0(t0)                    \n"                          \
+            "sw sp,  1*4+0(t0)                    \n"                          \
+            /* restore the sp at the beginning of the stack */                 \
+            "la sp, _main_stack_top"                                           \
+			);                                                                 \
 }
 
 /**
@@ -121,43 +128,44 @@ const int stackPtrOffsetInCtxsave=0; ///< Allows to locate the stack pointer
  */
 #define restoreContext()                                                       \
 {                                                                              \
-    asm volatile(                                                              \
+	asm volatile(                                                              \
+			/* save the address of ctxsave into t0 */                          \
             "la t0, ctxsave                       \n"                          \
             "lw t0, 0(t0)                         \n"                          \
-            "lw ra,  0*4+0(t0)                    \n"                          \
-            "lw sp,  1*4+0(t0)                    \n"                          \
-            "lw tp,  2*4+0(t0)                    \n"                          \
-            /* not t0 for now */                                               \
-            /* not t1 for now */                                               \
-            "lw t2,  5*4+0(t0)                    \n"                          \
-            "lw s0,  6*4+0(t0)                    \n"                          \
-            "lw s1,  7*4+0(t0)                    \n"                          \
-            "lw a0,  8*4+0(t0)                    \n"                          \
-            "lw a1,  9*4+0(t0)                    \n"                          \
-            "lw a2, 10*4+0(t0)                    \n"                          \
-            "lw a3, 11*4+0(t0)                    \n"                          \
-            "lw a4, 12*4+0(t0)                    \n"                          \
-            "lw a5, 13*4+0(t0)                    \n"                          \
-            "lw a6, 14*4+0(t0)                    \n"                          \
-            "lw a7, 15*4+0(t0)                    \n"                          \
-            "lw s2, 16*4+0(t0)                    \n"                          \
-            "lw s3, 17*4+0(t0)                    \n"                          \
-            "lw s4, 18*4+0(t0)                    \n"                          \
-            "lw s5, 19*4+0(t0)                    \n"                          \
-            "lw s6, 20*4+0(t0)                    \n"                          \
-            "lw s7, 21*4+0(t0)                    \n"                          \
-            "lw s8, 22*4+0(t0)                    \n"                          \
-            "lw s9, 23*4+0(t0)                    \n"                          \
+			/* get the registers from ctxsave */                               \
+            "lw ra,   0*4+0(t0)                   \n"                          \
+            "lw sp,   1*4+0(t0)                   \n"                          \
+            "lw tp,   2*4+0(t0)                   \n"                          \
+            /* skip t0 for now */                                              \
+            "lw t1,   4*4+0(t0)                   \n"                          \
+            "lw t2,   5*4+0(t0)                   \n"                          \
+            "lw s0,   6*4+0(t0)                   \n"                          \
+            "lw s1,   7*4+0(t0)                   \n"                          \
+            "lw a0,   8*4+0(t0)                   \n"                          \
+            "lw a1,   9*4+0(t0)                   \n"                          \
+            "lw a2,  10*4+0(t0)                   \n"                          \
+            "lw a3,  11*4+0(t0)                   \n"                          \
+            "lw a4,  12*4+0(t0)                   \n"                          \
+            "lw a5,  13*4+0(t0)                   \n"                          \
+            "lw a6,  14*4+0(t0)                   \n"                          \
+            "lw a7,  15*4+0(t0)                   \n"                          \
+            "lw s2,  16*4+0(t0)                   \n"                          \
+            "lw s3,  17*4+0(t0)                   \n"                          \
+            "lw s4,  18*4+0(t0)                   \n"                          \
+            "lw s5,  19*4+0(t0)                   \n"                          \
+            "lw s6,  20*4+0(t0)                   \n"                          \
+            "lw s7,  21*4+0(t0)                   \n"                          \
+            "lw s8,  22*4+0(t0)                   \n"                          \
+            "lw s9,  23*4+0(t0)                   \n"                          \
             "lw s10, 24*4+0(t0)                   \n"                          \
             "lw s11, 25*4+0(t0)                   \n"                          \
-            "lw t3, 26*4+0(t0)                    \n"                          \
-            "lw t4, 27*4+0(t0)                    \n"                          \
-            "lw t5, 28*4+0(t0)                    \n"                          \
-            "lw t6, 29*4+0(t0)                    \n"                       ); \
-                                                                               \
-    asm volatile ("lw t1, 30*4+0(t0)");  /* load saved q0 in t1   */           \
-    asm volatile("lw t1, 4*4+0(t0)\n"    /*now we can restore t0 and t1 */     \
-                 "lw t0, 3*4+0(t0)\n");                                        \
+            "lw t3,  26*4+0(t0)                   \n"                          \
+            "lw t4,  27*4+0(t0)                   \n"                          \
+            "lw t5,  28*4+0(t0)                   \n"                          \
+            "lw t6,  29*4+0(t0)                   \n"                          \
+            /* now restore t0 */                                               \
+            "lw t0,   3*4+0(t0)                   \n"                          \
+	);                                                                         \
 }
 
 /**
@@ -192,48 +200,15 @@ inline bool checkAreInterruptsEnabled()
 	return __check_are_irqs_enabled();
 }
 
-#ifdef WITH_PROCESSES
-
-//
-// class SyscallParameters
-//
-
-inline SyscallParameters::SyscallParameters(unsigned int *context) :
-        registers(reinterpret_cast<unsigned int*>(context[0])) {}
-
-inline int SyscallParameters::getSyscallId() const
+inline void doEnableInterrupt(int interrupt_number)
 {
-    return registers[3];
+    __enable_one_irq(interrupt_number);
 }
 
-inline unsigned int SyscallParameters::getFirstParameter() const
+inline void doDisableInterrupt(int interrupt_number)
 {
-    return registers[0];
+    __disable_one_irq(interrupt_number);
 }
-
-inline unsigned int SyscallParameters::getSecondParameter() const
-{
-    return registers[1];
-}
-
-inline unsigned int SyscallParameters::getThirdParameter() const
-{
-    return registers[2];
-}
-
-inline void SyscallParameters::setReturnValue(unsigned int ret)
-{
-    registers[0]=ret;
-}
-
-inline void portableSwitchToUserspace()
-{
-    asm volatile("movs r3, #1\n\t"
-                 "svc  0"
-                 :::"r3");
-}
-
-#endif //WITH_PROCESSES
 
 /**
  * \}

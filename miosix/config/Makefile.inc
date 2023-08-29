@@ -2910,7 +2910,6 @@ else ifeq ($(ARCH),riscv_gd32)
 
     ## Select architecture specific files
     ## These are the files in arch/<arch name>/common
-	## TODO: add driver files
 	ARCH_SRC +=                                  \
 	arch/common/core/interrupts_riscv.cpp \
 	$(ARCH_INC)/interfaces-impl/portability.cpp \
@@ -2918,16 +2917,13 @@ else ifeq ($(ARCH),riscv_gd32)
 	$(ARCH_INC)/interfaces-impl/gpio_impl.cpp    \
 	$(ARCH_INC)/interfaces-impl/delays.cpp \
 	arch/common/drivers/serial_gd32.cpp \
-    arch/common/NMSIS/Device/GigaDevice/GD32VF103/Firmware/GD32VF103_standard_peripheral/Include/system_gd32vf103.c \
-    arch/common/NMSIS/Device/GigaDevice/GD32VF103/Firmware/GD32VF103_standard_peripheral/Source/gd32vf103_usart.c \
-    arch/common/NMSIS/Device/GigaDevice/GD32VF103/Firmware/GD32VF103_standard_peripheral/Source/gd32vf103_gpio.c
+    arch/common/NMSIS/Device/GigaDevice/GD32VF103/Firmware/GD32VF103_standard_peripheral/Include/system_gd32vf103.c
 
     ## Select programmer command line
     ## This is the program that is invoked when the user types 'make program'
     ## The command must provide a way to program the board, or print an error
     ## message saying that 'make program' is not supported for that board.
-	## TODO: add programming tool
-    PROGRAM_CMDLINE := echo 'make program not supported'
+    PROGRAM_CMDLINE := dfu-util -a 0 -s 0x08000000:leave -D main.bin
 
 ##-----------------------------------------------------------------------------
 ## end of architecture list

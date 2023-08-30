@@ -52,6 +52,7 @@ public:
 		// first bit is the OCTL bit (only used in INPUT_PULL_UP and INPUT_PULL_DOWN)
 		// second-third bits are the CTL bits
 		// fourth-fifth bits are the MD bits
+		// default speed: 50MHz
         INPUT              = 0b00100, ///Floating Input
         INPUT_PULL_UP      = 0b11000, ///Pullup   Input
         INPUT_PULL_DOWN    = 0b01000, ///Pulldown Input
@@ -78,9 +79,9 @@ public:
      */
     enum Speed_
     {
-        _2MHz   = 0x0,
-        _10MHz  = 0x1,
-        _50MHz  = 0x3,
+        _2MHz   = 0b10,
+        _10MHz  = 0b01,
+        _50MHz  = 0b11,
     };
 private:
     Speed(); //Just a wrapper class, disallow creating instances
@@ -127,7 +128,10 @@ public:
      * Set the GPIO speed
      * \param s speed value
      */
-    void speed(Speed::Speed_ s) {}
+    void speed(Speed::Speed_ s) {
+		(GPIO_OCTL(reinterpret_cast<unsigned int>(p))) &= ~(0b0011 << (4 * n));
+		(GPIO_OCTL(reinterpret_cast<unsigned int>(p))) |= s << (4 * n);
+	}
 
     /**
      * Select which of the many alternate functions is to be connected with the
@@ -174,11 +178,11 @@ private:
 
 /**
  * Gpio template class
- * \param P GPIOA_BASE, GPIOB_BASE, ... as #define'd in gd32vf103_gpio.h
+ * \param P GPIOA, GPIOB, ... as #define'd in gd32vf103_gpio.h
  * \param N which pin (0 to 15)
  * The intended use is to make a typedef to this class with a meaningful name.
  * \code
- * typedef Gpio<PORTA_BASE,0> green_led;
+ * typedef Gpio<GPIOA,0> green_led;
  * green_led::mode(Mode::OUTPUT);
  * green_led::high();//Turn on LED
  * \endcode
@@ -200,7 +204,10 @@ public:
      * Set the GPIO speed
      * \param s speed value
      */
-    static void speed(Speed::Speed_ s) {}
+    static void speed(Speed::Speed_ s) {
+		(GPIO_OCTL(P)) &= ~(0b0011 << (4 * N));
+		(GPIO_OCTL(P)) |= s << (4 * N);
+	}
 
     /**
      * Select which of the many alternate functions is to be connected with the

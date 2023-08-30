@@ -53,6 +53,7 @@ void GpioBase::modeImpl(unsigned int p, unsigned char n, Mode::Mode_ m) {
 		(GPIO_OCTL(p)) &= ~(1 << n);
 }
 
+// Not needed in this architecture
 void GpioBase::afImpl(unsigned int p, unsigned char n, unsigned char af) {}
 
 } //namespace miosix

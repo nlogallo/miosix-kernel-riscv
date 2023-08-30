@@ -55,7 +55,7 @@
  * *ctxsave+120 --> q0
  * Register x0 (zero register) is not saved, since is constant
  * Register gp (x3) is not saved, since its value must be constant
- * to allow for linker relaxation) TODO: check this thing
+ * to allow for linker relaxation)
  */
 extern "C" {
 extern volatile unsigned int *ctxsave;

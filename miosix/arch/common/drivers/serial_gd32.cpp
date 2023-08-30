@@ -115,6 +115,7 @@ GD32Serial::GD32Serial(int id, int baudrate)
 
     ports[id]=this;
 
+	uint32_t clock = SystemCoreClock; 
 	// set the pins, enable the USART clock, enable the correct interrupt and select the correct port
 	switch(id) {
 		case 0:
@@ -125,6 +126,7 @@ GD32Serial::GD32Serial(int id, int baudrate)
 			port = USART0;
 			break;
 		case 1:
+			clock /= 2; //TODO: the bus might be further prescaled
 			u1tx::mode(Mode::ALTERNATE);
 			u1rx::mode(Mode::INPUT);
     		RCU_APB1EN |= RCU_APB1EN_USART1EN;
@@ -132,6 +134,7 @@ GD32Serial::GD32Serial(int id, int baudrate)
 			port = USART1;
 			break;
 		case 2:
+			clock /= 2; //TODO: the bus might be further prescaled
 			u2tx::mode(Mode::ALTERNATE);
 			u2rx::mode(Mode::INPUT);
     		RCU_APB1EN |= RCU_APB1EN_USART2EN;
@@ -143,12 +146,8 @@ GD32Serial::GD32Serial(int id, int baudrate)
 	}
 
 	// set the baud rate
-	uint32_t clock = HXTAL_VALUE;
     uint32_t udiv = (clock + baudrate/2U) / baudrate;
-    uint32_t intdiv = udiv & (0x0000fff0U);
-    uint32_t fradiv = udiv & (0x0000000fU);
-    USART_BAUD(port) = (intdiv << 4) | fradiv;
-
+    USART_BAUD(port) = udiv;
 	USART_CTL0(port) = USART_CTL0_UEN
 					   | USART_CTL0_RBNEIE
 					   | USART_CTL0_TEN
@@ -194,46 +193,6 @@ ssize_t GD32Serial::readBlock(uint16_t *buffer, size_t size, off_t where) {
 	rxQueue.get(c);
 	buf[0] = c;
 	return 1;
-}
-
-void GD32Serial::IRQwrite(const char *str)
-{
-    // We can reach here also with only kernel paused, so make sure
-    // interrupts are disabled. This is important for the DMA case
- /*   bool interrupts=areInterruptsEnabled();
-    if(interrupts) fastDisableInterrupts();
-    #ifdef SERIAL_DMA
-    if(dmaTx)
-    {
-        #if defined(_ARCH_CORTEXM3_STM32F1) || defined(_ARCH_CORTEXM4_STM32F3) \
-         || defined(_ARCH_CORTEXM4_STM32L4)
-        //If no DMA transfer is in progress bit EN is zero. Otherwise wait until
-        //DMA xfer ends, by waiting for the TC (or TE) interrupt flag
-        static const unsigned int irqMask[]=
-        {
-            (DMA_ISR_TCIF4 | DMA_ISR_TEIF4),
-            (DMA_ISR_TCIF7 | DMA_ISR_TEIF7),
-            (DMA_ISR_TCIF2 | DMA_ISR_TEIF2)
-        };
-        #if defined(_ARCH_CORTEXM4_STM32F3) || defined(_ARCH_CORTEXM4_STM32L4)
-        // Workaround for ST messing up with flag definitions...
-        constexpr unsigned int DMA_CCR4_EN = DMA_CCR_EN;
-        #endif
-        while((dmaTx->CCR & DMA_CCR4_EN) && !(DMA1->ISR & irqMask[getId()-1])) ;
-        #else //_ARCH_CORTEXM3_STM32F1
-        //Wait until DMA xfer ends. EN bit is cleared by hardware on transfer end
-        while(dmaTx->CR & DMA_SxCR_EN) ;
-        #endif //_ARCH_CORTEXM3_STM32F1
-    }
-    #endif //SERIAL_DMA
-    */
-    while(*str)
-    {
-        while((USART_STAT(port) & USART_STAT_TBE)==0) ;
-        USART_DATA(port)=*str++;
-    }
-    /*waitSerialTxFifoEmpty();
-    if(interrupts) fastEnableInterrupts();*/
 }
 
 }

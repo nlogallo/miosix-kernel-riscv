@@ -3,43 +3,23 @@
 #include "kernel/stage_2_boot.h"
 #include <string.h>
 
-void reset_stub(void) __attribute__((section(".bootstub"), naked));
-void reset_stub(void){
-    /* At reset, gp is loaded with a specific address (in the middle of sdata section), in order
-     * speed up accesses to frequently used memory locations (this is called linker relaxation).
-     * The options are needed in order to prevent the linker from relaxing the initialization
-     * of the register
-     */
-
-    asm volatile(                                \
-    ".option push \n"                            \
-    ".option norelax \n"                         \
-    "la gp, __global_pointer$ \n"                \
-    ".option pop \n"                             \
-    "j _Z13Reset_Handlerv \n"                    \
-    ".balign 16           \n"                    \
-    "j _ZN14miosix_private13IRQEntrypointEv\n"   \
-    );
-}
-
 /**
  * Called by Reset_Handler, performs initialization and calls main.
  * Never returns.
  */
 void program_startup() __attribute__((noreturn));
 void program_startup()
-{
+{    
     __disable_irq();
-
+    
     //SystemInit() is called *before* initializing .data and zeroing .bss
     SystemInit();
-
-	//These are defined in the linker script
-	extern unsigned char _etext asm("_etext");
-	extern unsigned char _data asm("_data");
-	extern unsigned char _edata asm("_edata");
-	extern unsigned char _bss_start asm("_bss_start");
-	extern unsigned char _bss_end asm("_bss_end");
+    //These are defined in the linker script
+    extern unsigned char _etext asm("_etext");
+    extern unsigned char _data asm("_data");
+    extern unsigned char _edata asm("_edata");
+    extern unsigned char _bss_start asm("_bss_start");
+    extern unsigned char _bss_end asm("_bss_end");
 
     //Initialize .data section, clear .bss section
     unsigned char *etext=&_etext;
@@ -49,14 +29,15 @@ void program_startup()
     unsigned char *bss_end=&_bss_end;
     memcpy(data, etext, edata-data);
     memset(bss_start, 0, bss_end-bss_start);
+    
+    
+    //Move on to stage 2
+    _init();
 
-	//Move on to stage 2
-	_init();
+    //If main returns, reboot
+    asm volatile("j _Z13Reset_Handlerv");
 
-	//If main returns, reboot
-	asm volatile("j _Z13Reset_Handlerv");
-
-	for(;;){};
+    for(;;) {}
 }
 
 /**
@@ -65,8 +46,14 @@ void program_startup()
 void Reset_Handler() __attribute__((noreturn, naked, used));
 void Reset_Handler()
 {
-    asm volatile("la sp, _main_stack_top");
-    asm volatile("j _Z15program_startupv");
+    asm volatile(".option push\n"\
+                 ".option norelax\n"\
+	         "la gp, __global_pointer$\n"\
+                 "la sp, _main_stack_top\n"\
+                 ".option pop\n"\
+                 "j _Z15program_startupv\n");
+    //asm volatile("la sp, _main_stack_top\n"\
+    //             "j _Z15program_startupv\n");
 }
 
 /**

@@ -119,7 +119,6 @@ void *mainLoader(void *argv)
 extern "C" void _init()
 {
     using namespace miosix;
-
     //Initialize kernel C++ global constructors (called before boot)
     extern unsigned long __miosix_init_array_start asm("__miosix_init_array_start");
     extern unsigned long __miosix_init_array_end asm("__miosix_init_array_end");

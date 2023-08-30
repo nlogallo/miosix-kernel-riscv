@@ -180,6 +180,13 @@ ssize_t GD32Serial::writeBlock(uint32_t *buffer, size_t size, off_t where) {
     return size;
 }
 
+void GD32Serial::IRQwrite(const char *str){
+  while(*str){
+    while((USART_STAT(port) & USART_STAT_TBE)==0);
+    USART_DATA(port)=*str++;
+  } 
+}
+
 ssize_t GD32Serial::readBlock(uint16_t *buffer, size_t size, off_t where) {
 	if (size < 1) {
 		return 0;

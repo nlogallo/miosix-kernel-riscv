@@ -1,4 +1,4 @@
-_main_stack_size = 512;                             /* main stack = 512Bytes */
+_main_stack_size = 1024;                             /* main stack = 512Bytes */
 _main_stack_top  = 0x20000000 + _main_stack_size;
 ASSERT(_main_stack_size   % 8 == 0, "MAIN stack size error");
 
@@ -10,7 +10,7 @@ ENTRY(_Z13Reset_Handlerv)
 
 MEMORY
 {
-    sram(wx)  : ORIGIN = 0x20000000, LENGTH = 32K
+    sram(wx)  : ORIGIN = 0x20000400, LENGTH = 32K
     flash(rx) : ORIGIN = 0x08000000, LENGTH = 128K
 }
 
@@ -101,13 +101,19 @@ SECTIONS
      * .data section: global variables go to sram, but also store a copy to
      * flash to initialize them
      */
-    .data : ALIGN(8)
+    .data : ALIGN(4)
     {
         _data = .;
         *(.data)
         *(.data.*)
         *(.gnu.linkonce.d.*)
-        . = ALIGN(8);
+        . = ALIGN(4);
+        PROVIDE(__global_pointer$ = . + 0x800);
+        *(.sdata)
+        *(.sdata.*)
+        . = ALIGN(4);
+        *(.sdata2)
+        *(.sdata2.*)
         _edata = .;
     } > sram AT > flash
     _etext = LOADADDR(.data);
@@ -119,6 +125,9 @@ SECTIONS
         *(.bss)
         *(.bss.*)
         *(.gnu.linkonce.b.*)
+        . = ALIGN(4);
+        *(.sbss)
+        *(.sbss.*)
         . = ALIGN(8);
     } > sram
     _bss_end = .;

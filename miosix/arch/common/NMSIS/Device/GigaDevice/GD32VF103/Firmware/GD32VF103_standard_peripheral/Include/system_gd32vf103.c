@@ -74,7 +74,6 @@ static void system_clock_72m_irc8m(void);
 #elif defined (__SYSTEM_CLOCK_108M_PLL_IRC8M)
 uint32_t SystemCoreClock = __SYSTEM_CLOCK_108M_PLL_IRC8M;
 static void system_clock_108m_irc8m(void);
-
 #elif defined (__SYSTEM_CLOCK_HXTAL)
 uint32_t SystemCoreClock = __SYSTEM_CLOCK_HXTAL;
 static void system_clock_hxtal(void);

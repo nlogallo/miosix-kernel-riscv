@@ -42,44 +42,47 @@ namespace miosix {
 //
 // Initialization
 //
-unsigned char serialBuffer[sizeof(GD32Serial)] __attribute__((aligned(8))) ;
 
 void IRQbspInit()
 {
     // enable all gpios
-	RCU_APB2EN |= RCU_APB2EN_AFEN;
-	RCU_APB2EN |= RCU_APB2EN_PAEN;
-	RCU_APB2EN |= RCU_APB2EN_PBEN;
-	RCU_APB2EN |= RCU_APB2EN_PCEN;
-	RCU_APB2EN |= RCU_APB2EN_PDEN;
-	RCU_APB2EN |= RCU_APB2EN_PEEN;
+    RCU_APB2EN |= RCU_APB2EN_AFEN;
+    RCU_APB2EN |= RCU_APB2EN_PAEN;
+    RCU_APB2EN |= RCU_APB2EN_PBEN;
+    RCU_APB2EN |= RCU_APB2EN_PCEN;
+    RCU_APB2EN |= RCU_APB2EN_PDEN;
+    RCU_APB2EN |= RCU_APB2EN_PEEN;
 
     button::mode(Mode::INPUT_PULL_UP);
 
     red_led::mode(Mode::OUTPUT);
     green_led::mode(Mode::OUTPUT);
     blue_led::mode(Mode::OUTPUT);
+    
+    redLedOff();
+    greenLedOff();
+    blueLedOff();
 
-	redLedOff();
-	greenLedOff();
-	blueLedOff();
-
-	// check that the LEDs work
+    // check that the LEDs work
     ledOn();
-    delayMs(1000);
+    delayMs(100);
     ledOff();
-    delayMs(1000);
 
     // init serial port TODO: doesn't work
     
     DefaultConsole::instance().IRQset(
-			intrusive_ref_ptr<Device>(new (serialBuffer) GD32Serial(defaultSerial, defaultSerialSpeed)));
-    IRQbootlog("Hello World \r\n");
+			intrusive_ref_ptr<Device>(new GD32Serial(defaultSerial, defaultSerialSpeed)));
     
+    //FIXME: the new GD32Serial turns on green and blue led
     greenLedOff();
     blueLedOff();
-    
-    for(;;){
+}
+
+void bspInit2()
+{
+//Doesn't get here :(
+InterruptDisableLock dLock;
+  for(;;){
       redLedOn();
       delayMs(500);
       redLedOff();
@@ -88,11 +91,6 @@ void IRQbspInit()
       IRQbootlog("Here01234567 \r\n");
       greenLedOff();
     }
-    
-}
-
-void bspInit2()
-{
 }
 
 //

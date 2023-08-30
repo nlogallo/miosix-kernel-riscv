@@ -2917,7 +2917,7 @@ else ifeq ($(ARCH),riscv_gd32)
 	$(ARCH_INC)/interfaces-impl/gpio_impl.cpp    \
 	$(ARCH_INC)/interfaces-impl/delays.cpp \
 	arch/common/drivers/serial_gd32.cpp \
-    arch/common/NMSIS/Device/GigaDevice/GD32VF103/Firmware/GD32VF103_standard_peripheral/Include/system_gd32vf103.c
+    arch/common/NMSIS/Device/GigaDevice/GD32VF103/Firmware/GD32VF103_standard_peripheral/Source/system_gd32vf103.c
 
     ## Select programmer command line
     ## This is the program that is invoked when the user types 'make program'

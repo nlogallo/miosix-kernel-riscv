@@ -55,7 +55,7 @@
 #OPT_BOARD := stm32l4r9zi_sensortile
 #OPT_BOARD := stm32f767zi_nucleo
 #OPT_BOARD := stm32f769ni_discovery
-#OPT_BOARD := gd32vf103cbt6_longan_nano
+OPT_BOARD := gd32vf103cbt6_longan_nano
 
 ##
 ## Optimization flags, choose one.

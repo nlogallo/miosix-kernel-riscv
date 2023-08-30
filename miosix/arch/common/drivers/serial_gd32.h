@@ -73,6 +73,8 @@ public:
      * \return number of bytes written or a negative number on failure
      */
     ssize_t writeBlock(uint32_t *buffer, size_t size, off_t where);
+    
+    void IRQwrite(const char *str);
 
     /**
      * \internal the serial port interrupts call this member function.

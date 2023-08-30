@@ -35,12 +35,14 @@
 #include "interfaces/bsp.h"
 #include "interfaces/delays.h"
 #include "drivers/serial.h"
+#include "kernel/logging.h"
 
 namespace miosix {
 
 //
 // Initialization
 //
+unsigned char serialBuffer[sizeof(GD32Serial)] __attribute__((aligned(8))) ;
 
 void IRQbspInit()
 {
@@ -69,8 +71,24 @@ void IRQbspInit()
     delayMs(1000);
 
     // init serial port TODO: doesn't work
+    
     DefaultConsole::instance().IRQset(
-			intrusive_ref_ptr<Device>(new GD32Serial(defaultSerial, defaultSerialSpeed)));
+			intrusive_ref_ptr<Device>(new (serialBuffer) GD32Serial(defaultSerial, defaultSerialSpeed)));
+    IRQbootlog("Hello World \r\n");
+    
+    greenLedOff();
+    blueLedOff();
+    
+    for(;;){
+      redLedOn();
+      delayMs(500);
+      redLedOff();
+      delayMs(500);
+      greenLedOn();
+      IRQbootlog("Here01234567 \r\n");
+      greenLedOff();
+    }
+    
 }
 
 void bspInit2()

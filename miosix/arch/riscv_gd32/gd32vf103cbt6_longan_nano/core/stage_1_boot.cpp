@@ -14,6 +14,7 @@ void program_startup()
     
     //SystemInit() is called *before* initializing .data and zeroing .bss
     SystemInit();
+
     //These are defined in the linker script
     extern unsigned char _etext asm("_etext");
     extern unsigned char _data asm("_data");
@@ -30,7 +31,6 @@ void program_startup()
     memcpy(data, etext, edata-data);
     memset(bss_start, 0, bss_end-bss_start);
     
-    
     //Move on to stage 2
     _init();
 
@@ -46,14 +46,15 @@ void program_startup()
 void Reset_Handler() __attribute__((noreturn, naked, used));
 void Reset_Handler()
 {
-    asm volatile(".option push\n"\
-                 ".option norelax\n"\
-	         "la gp, __global_pointer$\n"\
-                 "la sp, _main_stack_top\n"\
-                 ".option pop\n"\
-                 "j _Z15program_startupv\n");
-    //asm volatile("la sp, _main_stack_top\n"\
-    //             "j _Z15program_startupv\n");
+    asm volatile(
+			".option push                         \n"                  \
+        	".option norelax                      \n"                  \
+			/* set the global pointer gp to the data section */        \
+	        "la gp, __global_pointer$             \n"                  \
+            "la sp, _main_stack_top               \n"                  \
+            ".option pop                          \n"                  \
+            "j _Z15program_startupv               \n"
+		);
 }
 
 /**
@@ -65,7 +66,7 @@ extern "C" void Default_Handler()
 }
 
 //System handlers
-void /*__attribute__((weak))*/ Reset_Handler();     //These interrupts are not
+void /*__attribute__((weak))*/ Reset_Handler();
 
 //Interrupt handlers
 void __attribute__((weak)) ECLIC_MSIP_IRQHandler();
@@ -134,17 +135,17 @@ void __attribute__((weak)) USB_FS_IRQHandler();
 
 /**
  * This architecture needs on the first bytes a jump to the Reset_Handler; to
- * achieve so, put this jump in the ".isr_vector" section and put the actual
- * interrupts in a different section called ".isr_vector2"
+ * achieve so, put this jump in the ".reset_handler" section and put it before
+ * the ".isr_vector" in the linker script
  */
-void __attribute__ ((naked, section(".isr_vector"))) jumpTo() {
+void __attribute__ ((naked, section(".reset_handler"))) jumpTo() {
 	asm volatile("j _Z13Reset_Handlerv");
 }
 
 //Interrupt vectors
 //The extern declaration is required otherwise g++ optimizes it out
 extern void (* const __Vectors[])();
-void (* const __Vectors[])() __attribute__ ((section(".isr_vector2"))) =
+void (* const __Vectors[])() __attribute__ ((section(".isr_vector"))) =
 {
     /* External Interrupts */
 	0,

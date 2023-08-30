@@ -74,6 +74,10 @@ public:
      */
     ssize_t writeBlock(uint32_t *buffer, size_t size, off_t where);
     
+    /**
+     * Write a string even if IRQs are disabled
+     * \param str the string to write
+     */
     void IRQwrite(const char *str);
 
     /**

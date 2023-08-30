@@ -55,7 +55,7 @@
 #OPT_BOARD := stm32l4r9zi_sensortile
 #OPT_BOARD := stm32f767zi_nucleo
 #OPT_BOARD := stm32f769ni_discovery
-OPT_BOARD := gd32vf103cbt6_longan_nano
+#OPT_BOARD := gd32vf103cbt6_longan_nano
 
 ##
 ## Optimization flags, choose one.
@@ -74,7 +74,7 @@ OPT_OPTIMIZATION := -O2
 ## implicitly uses it) uncomment this option.
 ## the -D__NO_EXCEPTIONS is used by Miosix to know if exceptions are used.
 ##
-OPT_EXCEPT := -fno-exceptions -fno-rtti -D__NO_EXCEPTIONS
+#OPT_EXCEPT := -fno-exceptions -fno-rtti -D__NO_EXCEPTIONS
 
 #############################################################################
 ## Board specific options

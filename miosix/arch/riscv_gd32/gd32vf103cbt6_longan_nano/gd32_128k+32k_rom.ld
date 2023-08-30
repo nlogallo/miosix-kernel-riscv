@@ -21,9 +21,9 @@ SECTIONS
     /* .text section: code goes to flash */
     .text :
     {
-        /* Startup code must go at address 0 */
+        /* Before the isr_vector put a jump to the Reset_Handler */
+        KEEP(*(.reset_handler))
         KEEP(*(.isr_vector))
-        KEEP(*(.isr_vector2))
         
         *(.text)
         *(.text.*)

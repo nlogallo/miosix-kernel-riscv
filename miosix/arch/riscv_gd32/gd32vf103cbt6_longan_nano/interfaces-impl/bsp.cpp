@@ -68,29 +68,18 @@ void IRQbspInit()
     delayMs(100);
     ledOff();
 
-    // init serial port TODO: doesn't work
-    
+    // init serial port
     DefaultConsole::instance().IRQset(
 			intrusive_ref_ptr<Device>(new GD32Serial(defaultSerial, defaultSerialSpeed)));
     
-    //FIXME: the new GD32Serial turns on green and blue led
+    // FIXME: the new GD32Serial turns on green and blue led
     greenLedOff();
     blueLedOff();
 }
 
 void bspInit2()
 {
-//Doesn't get here :(
-InterruptDisableLock dLock;
-  for(;;){
-      redLedOn();
-      delayMs(500);
-      redLedOff();
-      delayMs(500);
-      greenLedOn();
-      IRQbootlog("Here01234567 \r\n");
-      greenLedOff();
-    }
+// FIXME: this code is never reached
 }
 
 //

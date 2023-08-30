@@ -37,11 +37,11 @@ using namespace std;
 static const int numPorts=3; //Supporting only USART0, USART1 and USART2
 
 // TX and RX pins
-typedef miosix::Gpio<GPIOA,  9>  u0tx;
+typedef miosix::Gpio<GPIOA,  9> u0tx;
 typedef miosix::Gpio<GPIOA, 10> u0rx;
 
-typedef miosix::Gpio<GPIOA, 2>  u1tx;
-typedef miosix::Gpio<GPIOA, 3>  u1rx;
+typedef miosix::Gpio<GPIOA,  2> u1tx;
+typedef miosix::Gpio<GPIOA,  3> u1rx;
 
 typedef miosix::Gpio<GPIOB, 10> u2tx;
 typedef miosix::Gpio<GPIOB, 11> u2rx;
@@ -181,10 +181,11 @@ ssize_t GD32Serial::writeBlock(uint32_t *buffer, size_t size, off_t where) {
 }
 
 void GD32Serial::IRQwrite(const char *str){
-  while(*str){
-    while((USART_STAT(port) & USART_STAT_TBE)==0);
-    USART_DATA(port)=*str++;
-  } 
+	while(*str) {
+		// wait until the tx is empty
+        while((USART_STAT(port) & USART_STAT_TBE)==0) ;
+        USART_DATA(port) = *str++;
+    }
 }
 
 ssize_t GD32Serial::readBlock(uint16_t *buffer, size_t size, off_t where) {
@@ -200,46 +201,6 @@ ssize_t GD32Serial::readBlock(uint16_t *buffer, size_t size, off_t where) {
 	rxQueue.get(c);
 	buf[0] = c;
 	return 1;
-}
-
-void GD32Serial::IRQwrite(const char *str)
-{
-    // We can reach here also with only kernel paused, so make sure
-    // interrupts are disabled. This is important for the DMA case
- /*   bool interrupts=areInterruptsEnabled();
-    if(interrupts) fastDisableInterrupts();
-    #ifdef SERIAL_DMA
-    if(dmaTx)
-    {
-        #if defined(_ARCH_CORTEXM3_STM32F1) || defined(_ARCH_CORTEXM4_STM32F3) \
-         || defined(_ARCH_CORTEXM4_STM32L4)
-        //If no DMA transfer is in progress bit EN is zero. Otherwise wait until
-        //DMA xfer ends, by waiting for the TC (or TE) interrupt flag
-        static const unsigned int irqMask[]=
-        {
-            (DMA_ISR_TCIF4 | DMA_ISR_TEIF4),
-            (DMA_ISR_TCIF7 | DMA_ISR_TEIF7),
-            (DMA_ISR_TCIF2 | DMA_ISR_TEIF2)
-        };
-        #if defined(_ARCH_CORTEXM4_STM32F3) || defined(_ARCH_CORTEXM4_STM32L4)
-        // Workaround for ST messing up with flag definitions...
-        constexpr unsigned int DMA_CCR4_EN = DMA_CCR_EN;
-        #endif
-        while((dmaTx->CCR & DMA_CCR4_EN) && !(DMA1->ISR & irqMask[getId()-1])) ;
-        #else //_ARCH_CORTEXM3_STM32F1
-        //Wait until DMA xfer ends. EN bit is cleared by hardware on transfer end
-        while(dmaTx->CR & DMA_SxCR_EN) ;
-        #endif //_ARCH_CORTEXM3_STM32F1
-    }
-    #endif //SERIAL_DMA
-    */
-    while(*str)
-    {
-        while((USART_STAT(port) & USART_STAT_TBE)==0) ;
-        USART_DATA(port)=*str++;
-    }
-    /*waitSerialTxFifoEmpty();
-    if(interrupts) fastEnableInterrupts();*/
 }
 
 }

@@ -67,14 +67,10 @@ void IRQbspInit()
     ledOn();
     delayMs(100);
     ledOff();
-
+    
     // init serial port
     DefaultConsole::instance().IRQset(
 			intrusive_ref_ptr<Device>(new GD32Serial(defaultSerial, defaultSerialSpeed)));
-    
-    // FIXME: the new GD32Serial turns on green and blue led
-    greenLedOff();
-    blueLedOff();
 }
 
 void bspInit2()

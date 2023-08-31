@@ -33,6 +33,8 @@
 
 namespace miosix {
 
+#warning FIXME: implement atomic ops!
+
 
 inline int atomicSwap(volatile int *p, int v)
 {

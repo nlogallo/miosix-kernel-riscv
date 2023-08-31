@@ -42,6 +42,8 @@ SECTIONS
         *(.rodata)
         *(.rodata.*)
         *(.gnu.linkonce.r.*)
+        *(.srodata)
+        *(.srodata.*)
 
         /* C++ Static constructors/destructors (eabi) */
         . = ALIGN(4);

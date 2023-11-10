@@ -42,6 +42,20 @@ namespace miosix {
 //
 // Initialization
 //
+    
+void __attribute__((noinline)) wtf()
+{
+    //volatile int terminate=0;
+    while(true)
+    {
+        blueLedOn();
+        greenLedOn();
+        delayMs(250);
+        blueLedOff();
+        greenLedOff();
+        delayMs(250);
+    }
+}
 
 void IRQbspInit()
 {
@@ -67,6 +81,8 @@ void IRQbspInit()
     ledOn();
     delayMs(100);
     ledOff();
+    
+    //wtf();
     
     // init serial port
     DefaultConsole::instance().IRQset(

@@ -41,6 +41,9 @@
 
 #include "kernel/logging.h"
 
+#include "interfaces/bsp.h"
+#include "interfaces/delays.h"
+
 
 namespace miosix_private {
 
@@ -89,7 +92,6 @@ void initCtxsave(unsigned int *ctxsave, void *(*pc)(void *), unsigned int *sp,
     ctxsave[30]=(unsigned int)miosix::Thread::threadLauncher; //q0 contains the IRQ return address
 }
 
-
 void IRQportableStartKernel()
 {
     //create a temporary space to save current registers. This data is useless
@@ -104,6 +106,16 @@ void IRQportableStartKernel()
 
     miosix::Thread::yield();
     //Never reaches here
+    
+    using namespace miosix;
+    for(;;)
+    {
+        delayMs(1000);
+        redLedOn();
+        delayMs(1000);
+        redLedOff();
+        IRQbootlog("reaches here anyway\r\n");
+    }
 }
 
 void sleepCpu()

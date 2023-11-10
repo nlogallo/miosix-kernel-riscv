@@ -3,6 +3,17 @@
 #include "kernel/stage_2_boot.h"
 #include <string.h>
 
+#include "interfaces/bsp.h"
+
+void __attribute__((aligned(64))) hcf()
+{
+	using namespace miosix;
+	red_led::low();
+	green_led::low();
+	blue_led::low();
+	for(;;) ;
+}
+
 /**
  * Called by Reset_Handler, performs initialization and calls main.
  * Never returns.
@@ -11,6 +22,7 @@ void program_startup() __attribute__((noreturn));
 void program_startup()
 {    
     __disable_irq();
+	write_csr(mtvec, reinterpret_cast<unsigned int>(&hcf) | 3);
     
     //SystemInit() is called *before* initializing .data and zeroing .bss
     SystemInit();

@@ -165,6 +165,7 @@ const int stackPtrOffsetInCtxsave=1; ///< Allows to locate the stack pointer
             "lw t6,  29*4+0(t0)                   \n"                          \
             /* now restore t0 */                                               \
             "lw t0,   3*4+0(t0)                   \n"                          \
+            "mret                                 \n"                          \
 	);                                                                         \
 }
 

@@ -1,0 +1,22 @@
+{
+    "files.associations": {
+        "*.def": "cpp",
+        "local_atomic": "cpp",
+        "atomic": "cpp",
+        "n200_func.h": "c",
+        "n200_func.c": "cpp",
+        "cstdint": "cpp",
+        "*.x": "cpp",
+        "*.inc": "cpp",
+        "cstring": "cpp",
+        "buffer": "cpp",
+        "variant": "cpp",
+        "array": "cpp",
+        "string": "cpp",
+        "internet": "cpp",
+        "socket": "cpp",
+        "string_view": "cpp",
+        "ranges": "cpp",
+        "span": "cpp"
+    }
+}

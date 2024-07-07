@@ -47,6 +47,7 @@ __attribute__( ( always_inline ) ) static inline void __disable_irq(void)
 {
 	unsigned long tmp;
 	asm volatile ("csrrc %0, mstatus, 0x8" : "=r"(tmp));
+	asm volatile ("csrrc x0, mie, %0" : : "r"(0x0));
 }
 
 

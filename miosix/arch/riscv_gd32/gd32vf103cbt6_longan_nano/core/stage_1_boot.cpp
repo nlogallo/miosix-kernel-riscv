@@ -1,17 +1,43 @@
 #include "interfaces/arch_registers.h"
 #include "core/interrupts.h" //For the unexpected interrupt call
 #include "kernel/stage_2_boot.h"
+#include "kernel/scheduler/scheduler.h"
+#include "arch/common/NMSIS/Device/GigaDevice/GD32VF103/Firmware/RISCV/drivers/riscv_encoding.h"
 #include <string.h>
 
 #include "interfaces/bsp.h"
+#include "kernel/logging.h"
 
-void __attribute__((aligned(64))) hcf()
-{
-	using namespace miosix;
+void handle_interrupt() {
+    using namespace miosix;
 	red_led::low();
-	green_led::low();
-	blue_led::low();
-	for(;;) ;
+}
+
+void handle_exception(uint32_t mcause) {
+    using namespace miosix;
+	if(mcause == 11){
+		blue_led::low();
+		miosix::Thread::IRQstackOverflowCheck();
+		miosix::Scheduler::IRQgetNextPreemption();
+	}else{
+		red_led::low();
+	}
+}
+
+void trap_impl(){
+	uint32_t mcause = read_csr(mcause);
+	if(mcause & 0x80000000){
+		handle_interrupt();
+	}else{
+		handle_exception(mcause);
+	}
+}
+
+void handle_trap() __attribute__((aligned(4), naked));
+void handle_trap() {
+	saveContext();
+	asm volatile("call _Z9trap_implv");
+	restoreContext();
 }
 
 /**
@@ -22,7 +48,7 @@ void program_startup() __attribute__((noreturn));
 void program_startup()
 {    
     __disable_irq();
-	write_csr(mtvec, reinterpret_cast<unsigned int>(&hcf) | 3);
+	write_csr(mtvec, reinterpret_cast<unsigned int>(&handle_trap) | 3);
     
     //SystemInit() is called *before* initializing .data and zeroing .bss
     SystemInit();
@@ -42,7 +68,7 @@ void program_startup()
     unsigned char *bss_end=&_bss_end;
     memcpy(data, etext, edata-data);
     memset(bss_start, 0, bss_end-bss_start);
-    
+
     //Move on to stage 2
     _init();
 
